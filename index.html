@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#000000">
 
-    <!-- Firebase Compat Libraries (Permite usar sem Bundler/Node.js) -->
+    <!-- Firebase Compat Libraries -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
@@ -19,13 +19,15 @@
            RESET E LAYOUT BASE
            ========================================= */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        body { background-color: #000; color: #fff; overflow: hidden; height: 100vh; width: 100vw; display: flex; flex-direction: column; }
+        
+        /* 100dvh resolve o problema das barras de navegação do mobile escondendo o conteúdo */
+        body { background-color: #000; color: #fff; overflow: hidden; height: 100dvh; width: 100vw; display: flex; flex-direction: column; }
 
         /* =========================================
            TELA DE LOGIN E LOADING
            ========================================= */
         #auth-overlay, #loading-overlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh;
             background: rgba(0,0,0,0.9); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
         #auth_button {
@@ -44,12 +46,12 @@
 
         /* Menu Lateral (Drawer) */
         #side-menu {
-            position: fixed; top: 0; right: -100%; width: 85vw; max-width: 400px; height: 100vh; background: #1a1a1a; z-index: 1000; transition: right 0.3s ease; box-shadow: -5px 0 20px rgba(0,0,0,0.8); display: flex; flex-direction: column;
+            position: fixed; top: 0; right: -100%; width: 85vw; max-width: 400px; height: 100dvh; background: #1a1a1a; z-index: 1000; transition: right 0.3s ease; box-shadow: -5px 0 20px rgba(0,0,0,0.8); display: flex; flex-direction: column;
         }
         #side-menu.open { right: 0; }
         .menu-header { display: flex; justify-content: space-between; padding: 20px; border-bottom: 1px solid #333; }
         .close-btn { background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
-        .menu-content { flex: 1; overflow-y: auto; padding: 20px; }
+        .menu-content { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: max(20px, env(safe-area-inset-bottom)); }
         
         .menu-section-title { font-size: 0.8rem; color: #888; text-transform: uppercase; margin-bottom: 15px; margin-top: 20px; }
         .folder-item { background: #2a2a2a; padding: 12px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; cursor: pointer; }
@@ -70,15 +72,18 @@
         }
         .combatant:active img { transform: scale(0.98); }
 
-        /* Overlay de Informações na Foto */
+        /* Overlay de Informações na Foto respeitando botões nativos do OS */
         .img-overlay {
-            position: absolute; bottom: 0; left: 0; width: 100%; padding: 40px 15px 15px 15px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); display: flex; justify-content: space-between; align-items: flex-end; pointer-events: none;
+            position: absolute; bottom: 0; left: 0; width: 100%; 
+            padding: 40px 15px max(15px, env(safe-area-inset-bottom)) 15px; 
+            background: linear-gradient(transparent, rgba(0,0,0,0.95)); display: flex; justify-content: space-between; align-items: flex-end; pointer-events: none;
         }
-        .img-elo { font-weight: bold; font-size: 1.2rem; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,1); }
+        .img-elo { font-weight: bold; font-size: 1.2rem; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,1); display: flex; align-items: center; }
+        .img-loyalty { font-size: 0.85rem; color: #ffeb3b; margin-left: 10px; text-shadow: 0 1px 2px rgba(0,0,0,1); }
         
-        /* Botão de Coração (Lealdade) */
+        /* Botão de Coração (Favoritas) */
         .btn-heart {
-            background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); border-radius: 50%; width: 45px; height: 45px; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; pointer-events: auto; backdrop-filter: blur(5px); color: #fff; transition: all 0.2s;
+            background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); border-radius: 50%; width: 45px; height: 45px; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; pointer-events: auto; backdrop-filter: blur(5px); color: #fff; transition: all 0.2s; margin-bottom: 5px;
         }
         .btn-heart.active { color: #e91e63; border-color: #e91e63; background: rgba(233, 30, 99, 0.2); }
 
@@ -88,22 +93,22 @@
         @keyframes winPulse { 0% { transform: scale(1); box-shadow: inset 0 0 0px 0px #4caf50; } 50% { transform: scale(1.02); box-shadow: inset 0 0 0px 10px #4caf50; } 100% { transform: scale(1); box-shadow: inset 0 0 0px 0px #4caf50; } }
 
         /* =========================================
-           TELAS DE RANKING (GLOBAL E POR PASTA)
+           TELAS DE RANKING
            ========================================= */
         #ranking-screen {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 2000; display: none; flex-direction: column;
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: #000; z-index: 2000; display: none; flex-direction: column;
         }
-        .rank-header { padding: 20px; display: flex; align-items: center; background: #111; border-bottom: 1px solid #333; }
+        .rank-header { padding: 20px; display: flex; align-items: center; background: #111; border-bottom: 1px solid #333; padding-top: max(20px, env(safe-area-inset-top)); }
         .rank-header button { background: none; border: none; color: #fff; font-size: 1.5rem; margin-right: 15px; cursor: pointer; }
-        .rank-grid { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 2px; }
+        .rank-grid { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 2px; padding-bottom: max(20px, env(safe-area-inset-bottom)); }
         .rank-item { position: relative; aspect-ratio: 1; background: #222; }
         .rank-item img { width: 100%; height: 100%; object-fit: cover; }
-        .rank-badge { position: absolute; bottom: 5px; left: 5px; background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; }
+        .rank-badge { position: absolute; bottom: 5px; left: 5px; background: rgba(0,0,0,0.8); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; color: #fff; }
     </style>
 </head>
 <body>
 
-    <!-- OVERLAYS (Auth e Loading) -->
+    <!-- OVERLAYS -->
     <div id="auth-overlay">
         <h2 style="margin-bottom: 20px;">Curadoria ELO</h2>
         <button id="auth_button" onclick="handleAuthClick()" style="display:none;">Conectar Google</button>
@@ -113,7 +118,7 @@
         <div id="loading-text">Sincronizando banco de dados...</div>
     </div>
 
-    <!-- CABEÇALHO PRINCIPAL -->
+    <!-- CABEÇALHO -->
     <div id="header">
         <div id="app-title">ELO MATCHUP</div>
         <button id="menu-btn" onclick="toggleMenu()">☰</button>
@@ -126,7 +131,8 @@
             <button class="close-btn" onclick="toggleMenu()">×</button>
         </div>
         <div class="menu-content">
-            <button class="btn-global-rank" onclick="openGlobalRank()">❤️ RANK DE LEALDADE (100%)</button>
+            <button class="btn-global-rank" onclick="openLoyaltyRank()" style="background:#ff9800; color:#000;">🏆 100% LEALDADE</button>
+            <button class="btn-global-rank" onclick="openHeartRank()">❤️ FAVORITAS MANUAIS</button>
             <div class="menu-section-title">Bolhas de Curadoria (>30 img)</div>
             <div id="folder-list-container">
                 <!-- Preenchido via JS -->
@@ -145,12 +151,15 @@
         </div>
     </div>
 
-    <!-- ARENA DE DUELO (MOBILE VERTICAL) -->
+    <!-- ARENA DE DUELO -->
     <div id="arena">
         <div class="combatant" id="fighter1" onclick="vote(1)">
             <img id="img1" src="" alt="Fighter 1">
             <div class="img-overlay">
-                <div class="img-elo" id="elo1">ELO: 0</div>
+                <div class="img-elo" id="elo-container1">
+                    <span id="elo1">0</span>
+                    <span class="img-loyalty" id="loyalty1">0%</span>
+                </div>
                 <button class="btn-heart" id="heart1" onclick="toggleHeart(event, 1)">🤍</button>
             </div>
         </div>
@@ -158,7 +167,10 @@
         <div class="combatant" id="fighter2" onclick="vote(2)">
             <img id="img2" src="" alt="Fighter 2">
             <div class="img-overlay">
-                <div class="img-elo" id="elo2">ELO: 0</div>
+                <div class="img-elo" id="elo-container2">
+                    <span id="elo2">0</span>
+                    <span class="img-loyalty" id="loyalty2">0%</span>
+                </div>
                 <button class="btn-heart" id="heart2" onclick="toggleHeart(event, 2)">🤍</button>
             </div>
         </div>
@@ -166,7 +178,7 @@
 
     <script type="text/javascript">
         // ==========================================
-        // 1. CONFIGURAÇÕES: FIREBASE & GOOGLE DRIVE
+        // CONFIGURAÇÕES FIREBASE & DRIVE
         // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyBrbd4jmxzoggc4WKAmddSOG1Tb63h2oIU",
@@ -187,14 +199,17 @@
 
         let tokenClient, gapiInited = false, gsisInited = false;
         
-        // Estado do App
-        let activeFolders = []; // Pastas com >= 30 arquivos
-        let folderData = {}; // Cache de imagens por pasta { folderId: [imgObjects...] }
+        // Estado
+        let activeFolders = [];
+        let folderData = {}; 
         let currentMatchup = { folderId: null, img1: null, img2: null };
         let isProcessingVote = false;
 
+        // Cálculos Auxiliares
+        const getLoyalty = (img) => img.matches > 0 ? Math.round((img.wins / img.matches) * 100) : 0;
+
         // ==========================================
-        // 2. INICIALIZAÇÃO GOOGLE API
+        // INICIALIZAÇÃO
         // ==========================================
         function gapiLoaded() {
             gapi.load('client', () => {
@@ -220,9 +235,6 @@
             tokenClient.requestAccessToken();
         }
 
-        // ==========================================
-        // 3. LÓGICA CORE: SINCRONIZAÇÃO E PASTAS
-        // ==========================================
         function updateLoadingText(text) { document.getElementById('loading-text').innerText = text; }
 
         async function initializeAppSystem() {
@@ -234,7 +246,6 @@
                 const images = await getImagesFromFolder(folders[i].id);
                 
                 if (images.length >= 30) {
-                    // Sincroniza com Firebase (Cria registro base para arquivos novos)
                     await syncFolderWithFirebase(folders[i].id, images);
                     activeFolders.push({ id: folders[i].id, name: folders[i].name, count: images.length });
                 }
@@ -281,42 +292,40 @@
             const collectionRef = db.collection('images');
             let imgData = [];
 
-            // Puxa o que já existe no Firebase para essa pasta
             const snapshot = await collectionRef.where('folderId', '==', folderId).get();
             const firebaseMap = new Map();
             snapshot.forEach(doc => firebaseMap.set(doc.id, doc.data()));
 
             driveImages.forEach(img => {
                 if (!firebaseMap.has(img.id)) {
-                    // Imagem nova, inicializa ELO e array de oponentes enfrentados
-                    const docRef = collectionRef.doc(img.id);
-                    const newDoc = { folderId: folderId, elo: 0, hearts: 0, url: img.url, faced: [] };
-                    batch.set(docRef, newDoc);
+                    // Inicialização incluindo Contadores de Lealdade
+                    const newDoc = { folderId: folderId, elo: 0, hearts: 0, wins: 0, matches: 0, url: img.url, faced: [] };
+                    batch.set(collectionRef.doc(img.id), newDoc);
                     imgData.push({ id: img.id, ...newDoc });
                 } else {
-                    // Já existe, atualiza apenas URL se mudou
                     const existing = firebaseMap.get(img.id);
                     existing.url = img.url; 
+                    // Fallback para documentos antigos
+                    existing.wins = existing.wins || 0;
+                    existing.matches = existing.matches || 0;
                     imgData.push({ id: img.id, ...existing });
                 }
             });
             await batch.commit();
-            folderData[folderId] = imgData; // Salva na RAM local
+            folderData[folderId] = imgData; 
         }
 
         // ==========================================
-        // 4. SISTEMA DE MATCHUP (ROUND-ROBIN)
+        // SISTEMA DE MATCHUP (ROUND-ROBIN)
         // ==========================================
         function setupNextMatch() {
             isProcessingVote = false;
             document.getElementById('fighter1').className = 'combatant';
             document.getElementById('fighter2').className = 'combatant';
 
-            // Escolhe uma pasta aleatória válida
             const randomFolder = activeFolders[Math.floor(Math.random() * activeFolders.length)];
             const images = folderData[randomFolder.id];
             
-            // Lógica de pareamento
             let p1, p2;
             let attempts = 0;
             const maxAttempts = 200;
@@ -326,17 +335,15 @@
                 p2 = images[Math.floor(Math.random() * images.length)];
                 
                 if (p1.id !== p2.id) {
-                    // Verifica se já se enfrentaram neste ciclo
                     const p1Faced = p1.faced || [];
                     if (!p1Faced.includes(p2.id)) break; 
                 }
                 attempts++;
             }
 
-            // Se estourou tentativas, significa que o CICLO ACABOU (Todos enfrentaram todos)
             if (attempts >= maxAttempts) {
                 handleCycleEnd(randomFolder.id);
-                return; // Pausa a geração, o handleCycleEnd chamará o setupNextMatch depois
+                return; 
             }
 
             currentMatchup = { folderId: randomFolder.id, img1: p1, img2: p2 };
@@ -345,35 +352,37 @@
 
         function updateArenaUI() {
             const { img1, img2 } = currentMatchup;
+            
             document.getElementById('img1').src = img1.url;
             document.getElementById('elo1').innerText = `ELO: ${Math.round(img1.elo)}`;
+            document.getElementById('loyalty1').innerText = `🏆 L: ${getLoyalty(img1)}%`;
             const h1 = document.getElementById('heart1');
             h1.className = img1.hearts > 0 ? 'btn-heart active' : 'btn-heart';
             h1.innerText = img1.hearts > 0 ? '❤️' : '🤍';
 
             document.getElementById('img2').src = img2.url;
             document.getElementById('elo2').innerText = `ELO: ${Math.round(img2.elo)}`;
+            document.getElementById('loyalty2').innerText = `🏆 L: ${getLoyalty(img2)}%`;
             const h2 = document.getElementById('heart2');
             h2.className = img2.hearts > 0 ? 'btn-heart active' : 'btn-heart';
             h2.innerText = img2.hearts > 0 ? '❤️' : '🤍';
         }
 
         // ==========================================
-        // 5. CÁLCULO DE ELO E VOTAÇÃO
+        // CÁLCULO DE ELO E VOTAÇÃO
         // ==========================================
         async function vote(winnerNumber) {
             if (isProcessingVote) return;
             isProcessingVote = true;
 
-            const { folderId, img1, img2 } = currentMatchup;
+            const { img1, img2 } = currentMatchup;
             const winner = winnerNumber === 1 ? img1 : img2;
             const loser = winnerNumber === 1 ? img2 : img1;
 
-            // Animação Visual
             document.getElementById(`fighter${winnerNumber}`).classList.add('winner');
             document.getElementById(`fighter${winnerNumber === 1 ? 2 : 1}`).classList.add('loser');
 
-            // Cálculo ELO (K=32)
+            // Cálculo ELO
             const K = 32;
             const expectedWinner = 1 / (1 + Math.pow(10, (loser.elo - winner.elo) / 400));
             const expectedLoser = 1 / (1 + Math.pow(10, (winner.elo - loser.elo) / 400));
@@ -381,21 +390,25 @@
             const newWinnerElo = winner.elo + K * (1 - expectedWinner);
             const newLoserElo = loser.elo + K * (0 - expectedLoser);
 
-            // Atualiza RAM
+            // Atualiza RAM (Lealdade e ELO)
             winner.elo = newWinnerElo;
             winner.faced.push(loser.id);
+            winner.wins += 1;
+            winner.matches += 1;
+
             loser.elo = newLoserElo;
             loser.faced.push(winner.id);
+            loser.matches += 1;
 
-            // Atualiza Firebase (Assíncrono no background)
-            db.collection('images').doc(winner.id).update({ elo: newWinnerElo, faced: winner.faced });
-            db.collection('images').doc(loser.id).update({ elo: newLoserElo, faced: loser.faced });
+            // Envia para Firebase
+            db.collection('images').doc(winner.id).update({ elo: newWinnerElo, faced: winner.faced, wins: winner.wins, matches: winner.matches });
+            db.collection('images').doc(loser.id).update({ elo: newLoserElo, faced: loser.faced, matches: loser.matches });
 
-            setTimeout(setupNextMatch, 600); // Aguarda animação e carrega próxima luta
+            setTimeout(setupNextMatch, 600); 
         }
 
         async function toggleHeart(e, fNumber) {
-            e.stopPropagation(); // Impede que o clique no coração registre um voto na foto
+            e.stopPropagation(); 
             const img = fNumber === 1 ? currentMatchup.img1 : currentMatchup.img2;
             const btn = document.getElementById(`heart${fNumber}`);
             
@@ -412,28 +425,28 @@
         }
 
         // ==========================================
-        // 6. FIM DE CICLO E EXPURGO ELO NEGATIVO
+        // FIM DE CICLO: EXPURGO POR LEALDADE (< 15%)
         // ==========================================
         async function handleCycleEnd(folderId) {
             document.getElementById('loading-overlay').style.display = 'flex';
-            updateLoadingText("Ciclo completo! Expurgando ELOs negativos...");
+            updateLoadingText("Ciclo completo! Expurgando imagens infiéis (<15%)...");
 
             let images = folderData[folderId];
             let survivingImages = [];
             let movePromises = [];
 
             for (let img of images) {
-                if (img.elo < 0) {
-                    // MOVE NO GOOGLE DRIVE
+                let loyaltyScore = getLoyalty(img);
+                
+                // Exclusão por Baixa Lealdade
+                if (img.matches > 0 && loyaltyScore < 15) {
                     movePromises.push(
                         gapi.client.drive.files.update({
                             fileId: img.id, addParents: REJECT_FOLDER_ID, removeParents: folderId, fields: 'id'
                         })
                     );
-                    // DELETA DO FIREBASE
                     db.collection('images').doc(img.id).delete();
                 } else {
-                    // Sobreviveu: Reseta o histórico do ciclo para recomeçar
                     img.faced = [];
                     db.collection('images').doc(img.id).update({ faced: [] });
                     survivingImages.push(img);
@@ -441,14 +454,11 @@
             }
 
             await Promise.all(movePromises);
-
-            // Atualiza a RAM
             folderData[folderId] = survivingImages;
             
-            // Revalida a regra das 30 imagens
             if (survivingImages.length < 30) {
                 activeFolders = activeFolders.filter(f => f.id !== folderId);
-                alert(`A pasta atingiu menos de 30 imagens e saiu das disputas.`);
+                alert(`Uma pasta atingiu menos de 30 imagens e foi aposentada das disputas.`);
                 renderMenu();
             }
 
@@ -457,11 +467,9 @@
         }
 
         // ==========================================
-        // 7. MENU E RANKINGS (UI)
+        // MENUS E RANKS
         // ==========================================
-        function toggleMenu() {
-            document.getElementById('side-menu').classList.toggle('open');
-        }
+        function toggleMenu() { document.getElementById('side-menu').classList.toggle('open'); }
 
         function renderMenu() {
             const container = document.getElementById('folder-list-container');
@@ -475,22 +483,36 @@
             });
         }
 
-        function openGlobalRank() {
+        function openLoyaltyRank() {
             toggleMenu();
-            document.getElementById('rank-title').innerText = "Ranking Global: 100% Lealdade";
+            document.getElementById('rank-title').innerText = "100% Lealdade (Invictas)";
             const container = document.getElementById('rank-grid-container');
             container.innerHTML = '';
 
-            // Junta todas as imagens de todas as pastas em RAM que tenham 1 coração
-            let allHearts = [];
-            for (let key in folderData) {
-                allHearts = allHearts.concat(folderData[key].filter(i => i.hearts > 0));
-            }
+            let allImages = [];
+            for (let key in folderData) { allImages = allImages.concat(folderData[key]); }
             
-            // Ordena pelo ELO como critério de desempate
-            allHearts.sort((a, b) => b.elo - a.elo);
+            // Filtra: Participou de lutas E venceu todas
+            let loyalImages = allImages.filter(i => i.matches > 0 && getLoyalty(i) === 100);
+            loyalImages.sort((a, b) => b.elo - a.elo); // Desempate por ELO
 
-            allHearts.forEach(img => {
+            loyalImages.forEach(img => {
+                container.innerHTML += `<div class="rank-item"><img src="${img.url}"><div class="rank-badge">🏆 ${Math.round(img.elo)}</div></div>`;
+            });
+            document.getElementById('ranking-screen').style.display = 'flex';
+        }
+
+        function openHeartRank() {
+            toggleMenu();
+            document.getElementById('rank-title').innerText = "Favoritas (Manuais)";
+            const container = document.getElementById('rank-grid-container');
+            container.innerHTML = '';
+
+            let heartImages = [];
+            for (let key in folderData) { heartImages = heartImages.concat(folderData[key].filter(i => i.hearts > 0)); }
+            heartImages.sort((a, b) => b.elo - a.elo);
+
+            heartImages.forEach(img => {
                 container.innerHTML += `<div class="rank-item"><img src="${img.url}"><div class="rank-badge">❤️ ${Math.round(img.elo)}</div></div>`;
             });
             document.getElementById('ranking-screen').style.display = 'flex';
@@ -503,17 +525,13 @@
             container.innerHTML = '';
 
             let sorted = [...folderData[folderId]].sort((a, b) => b.elo - a.elo);
-            
             sorted.forEach((img, i) => {
-                container.innerHTML += `<div class="rank-item"><img src="${img.url}"><div class="rank-badge">#${i+1} | ${Math.round(img.elo)}</div></div>`;
+                container.innerHTML += `<div class="rank-item"><img src="${img.url}"><div class="rank-badge">#${i+1} | E: ${Math.round(img.elo)}</div></div>`;
             });
             document.getElementById('ranking-screen').style.display = 'flex';
         }
 
-        function closeRank() {
-            document.getElementById('ranking-screen').style.display = 'none';
-        }
-
+        function closeRank() { document.getElementById('ranking-screen').style.display = 'none'; }
     </script>
 </body>
 </html>
