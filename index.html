@@ -6,9 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#000000">
 
+    <!-- Firebase Compat Libraries -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
+    <!-- Google Drive API -->
     <script src="https://accounts.google.com/gsi/client" onload="initTokenClient()" async defer></script>
     <script src="https://apis.google.com/js/api.js" onload="gapiLoaded()" async defer></script>
 
@@ -33,7 +35,7 @@
         #loading-text { font-size: 1.2rem; color: #aaa; margin-top: 15px; text-align: center; padding: 0 20px;}
 
         /* =========================================
-           TOAST NOTIFICATIONS (Alertas 3 seg)
+           TOAST NOTIFICATIONS E AVISOS FLUTUANTES
            ========================================= */
         #toast-container {
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; width: 90%; max-width: 400px;
@@ -45,14 +47,24 @@
         .toast.gold { background: #ffc107; color: #000; border: 1px solid #fff; }
         .toast.danger { background: #f44336; color: #fff; border: 1px solid #fff; }
 
+        #focus-mode-banner {
+            position: absolute; top: 70px; left: 50%; transform: translateX(-50%);
+            background: #e91e63; color: white; padding: 8px 20px; border-radius: 20px;
+            font-size: 0.8rem; font-weight: bold; cursor: pointer; z-index: 1000;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.8); text-transform: uppercase; letter-spacing: 1px;
+            display: none; border: 1px solid #fff; text-align: center;
+        }
+        #focus-mode-banner:active { transform: translateX(-50%) scale(0.95); }
+
         /* =========================================
            CABEÇALHO E MENU SANDUÍCHE
            ========================================= */
         #header {
-            height: 8vh; min-height: 50px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; background: #111; border-bottom: 1px solid #333; z-index: 100;
+            position: relative; height: 8vh; min-height: 50px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; background: #111; border-bottom: 1px solid #333; z-index: 100;
         }
-        #app-title { font-weight: 800; font-size: 1.1rem; letter-spacing: 1px; color: #fff; }
-        #menu-btn { font-size: 1.8rem; background: none; border: none; color: #fff; cursor: pointer; }
+        #app-title { font-weight: 800; font-size: 1.1rem; letter-spacing: 1px; color: #fff; z-index: 2; }
+        #header-folder-name { position: absolute; left: 50%; transform: translateX(-50%); font-size: 0.85rem; color: #ffeb3b; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 40vw; text-align: center; z-index: 1; }
+        #menu-btn { font-size: 1.8rem; background: none; border: none; color: #fff; cursor: pointer; z-index: 2; }
 
         /* Menu Lateral (Drawer) */
         #side-menu {
@@ -71,15 +83,14 @@
         .btn-global-rank.danger { background: #f44336; color: #fff; }
 
         /* =========================================
-           ÁREA DE DUELO (MATCHUP) E BOTÃO VOLTAR
+           ÁREA DE DUELO (MATCHUP)
            ========================================= */
         #arena {
             flex: 1; display: flex; flex-direction: column; width: 100vw; overflow: hidden; position: relative;
         }
         
-        /* Botão Desfazer Flutuante */
         #undo_button {
-            position: absolute; top: 10px; left: 10px; z-index: 900; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); padding: 8px 15px; border-radius: 20px; color: #fff; font-weight: bold; backdrop-filter: blur(5px); cursor: pointer; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            position: absolute; top: 15px; left: 15px; z-index: 900; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.3); padding: 10px 18px; border-radius: 20px; color: #fff; font-weight: bold; backdrop-filter: blur(5px); cursor: pointer; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
         #undo_button:active { background: rgba(255,255,255,0.3); }
 
@@ -100,8 +111,7 @@
         .stats-container { display: flex; flex-direction: column; gap: 4px; text-shadow: 0 2px 4px rgba(0,0,0,1); }
         .stat-loyalty { font-weight: bold; font-size: 1.1rem; color: #ffeb3b; }
         
-        /* A fração começa oculta (display:none) e é exibida via JS após o clique */
-        .stat-fraction { font-size: 0.9rem; color: #fff; font-weight: 500; display: none; } 
+        .stat-fraction { font-size: 0.95rem; color: #fff; font-weight: bold; display: none; background: rgba(0,0,0,0.5); padding: 4px 8px; border-radius: 6px;} 
 
         .btn-block {
             background: rgba(0,0,0,0.7); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; width: 50px; height: 50px; font-size: 1.3rem; display: flex; align-items: center; justify-content: center; cursor: pointer; pointer-events: auto; backdrop-filter: blur(5px); color: #fff; transition: all 0.2s; margin-bottom: 5px; flex-shrink: 0;
@@ -126,12 +136,17 @@
         
         .rank-grid { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; padding: 2px; padding-bottom: max(20px, env(safe-area-inset-bottom)); align-content: flex-start; }
         .rank-item { position: relative; aspect-ratio: 1; background: #222; width: 100%; }
-        .rank-item img { width: 100%; height: 100%; object-fit: cover; }
+        
+        /* Classe especial para imagens que já lutaram com todos na janela de 24h */
+        .rank-item img { width: 100%; height: 100%; object-fit: cover; transition: all 0.3s; }
+        .rank-item img.exhausted { opacity: 0.3; filter: grayscale(80%); }
+
         .rank-badge { position: absolute; bottom: 3px; left: 3px; background: rgba(0,0,0,0.85); padding: 2px 4px; border-radius: 3px; font-size: 0.6rem; font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90%; }
     </style>
 </head>
 <body>
 
+    <!-- OVERLAYS E TOAST -->
     <div id="toast-container"></div>
 
     <div id="auth-overlay">
@@ -143,11 +158,14 @@
         <div id="loading-text">Sincronizando banco de dados...</div>
     </div>
 
+    <!-- CABEÇALHO -->
     <div id="header">
         <div id="app-title">ELO MATCHUP</div>
+        <div id="header-folder-name"></div>
         <button id="menu-btn" onclick="toggleMenu()">☰</button>
     </div>
 
+    <!-- MENU SANDUÍCHE -->
     <div id="side-menu">
         <div class="menu-header">
             <h3>Painel de Controle</h3>
@@ -159,11 +177,11 @@
             <button class="btn-global-rank" onclick="openLoyaltyRank()">🏆 GERAL (100% Invictas)</button>
             
             <div class="menu-section-title">Bolhas em Disputa Ativa</div>
-            <div id="folder-list-container">
-                </div>
+            <div id="folder-list-container"></div>
         </div>
     </div>
 
+    <!-- TELA DE RANKING -->
     <div id="ranking-screen">
         <div class="rank-header">
             <button onclick="closeRank()">←</button>
@@ -172,8 +190,10 @@
         <div class="rank-grid" id="rank-grid-container"></div>
     </div>
 
+    <!-- ARENA DE DUELO -->
     <div id="arena">
         <button id="undo_button" onclick="undoLastVote()">↩ Desfazer Voto</button>
+        <div id="focus-mode-banner" onclick="cancelFocusMode()">MODO FOCO ATIVO<br><span style="font-size: 0.65rem; font-weight: normal;">Clique para sair</span></div>
 
         <div class="combatant" id="fighter1" onclick="vote(1)">
             <img id="img1" src="" alt="Fighter 1">
@@ -199,8 +219,10 @@
     </div>
 
     <script type="text/javascript">
-        // REQ 1: Força o refresh da página a cada 15 minutos (900.000 ms) para garantir sincronia
-        setTimeout(() => { window.location.reload(); }, 15 * 60 * 1000);
+        // ==========================================
+        // REQ: Refresh a cada 20 minutos (1.200.000 ms)
+        // ==========================================
+        setTimeout(() => { window.location.reload(); }, 20 * 60 * 1000);
 
         // ==========================================
         // CONFIGURAÇÕES FIREBASE & DRIVE
@@ -229,33 +251,43 @@
         let folderData = {}; 
         let currentMatchup = { folderId: null, img1: null, img2: null };
         let isProcessingVote = false;
-        
-        // REQ 4: Variável para armazenar o snapshot da última jogada
         let lastVoteState = null; 
+        let targetedImgInfo = null;
 
-        // Regras Matemáticas Base
+        // Regras Matemáticas e Ordenação
         const getLoyalty = (img) => img.matches > 0 ? Math.round((img.wins / img.matches) * 100) : 0;
         const isHorsConcours = (img) => img.status === 'hors_concours';
         const isRejected = (img) => img.status === 'rejected';
 
-        // REQ 5: Sistema de Alertas Toast
+        // REQ: Ordenação Dupla (ELO > Nome A-Z)
+        const sortEloName = (a, b) => {
+            if (b.elo !== a.elo) return b.elo - a.elo;
+            const nameA = a.name || "";
+            const nameB = b.name || "";
+            return nameA.localeCompare(nameB);
+        };
+
+        // Formatação do Header
+        function formatFolderName(name) {
+            let formatted = name.replace(/^\d+\s*/, ''); // Tira número inicial
+            return formatted.split('-')[0].trim(); // Tira do hífen pra frente
+        }
+
         function showToast(msg, type='info') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
             toast.innerText = msg;
             container.appendChild(toast);
-            
-            // Anima entrada e saída
             requestAnimationFrame(() => toast.classList.add('show'));
             setTimeout(() => {
                 toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 300); // Remove do DOM após animação
+                setTimeout(() => toast.remove(), 300); 
             }, 3000);
         }
 
         // ==========================================
-        // INICIALIZAÇÃO E AVALIAÇÃO DE REGRAS
+        // INICIALIZAÇÃO
         // ==========================================
         function gapiLoaded() {
             gapi.load('client', () => {
@@ -293,7 +325,7 @@
                 
                 if (images.length > 0) {
                     await syncFolderWithFirebase(folders[i].id, images);
-                    applyDynamicRules(folders[i].id); // Aplica as regras de 10% e 33% na carga
+                    applyDynamicRules(folders[i].id);
                     activeFolders.push({ id: folders[i].id, name: folders[i].name });
                 }
             }
@@ -326,9 +358,10 @@
             do {
                 const res = await gapi.client.drive.files.list({
                     q: `'${folderId}' in parents and mimeType contains 'image/' and trashed = false`,
-                    fields: 'nextPageToken, files(id, thumbnailLink)', pageSize: 100, pageToken: pageToken
+                    fields: 'nextPageToken, files(id, name, thumbnailLink)', pageSize: 100, pageToken: pageToken
                 });
-                images = images.concat(res.result.files.map(f => ({ id: f.id, url: f.thumbnailLink.replace('=s220', '=s800') })));
+                // Agora pegamos f.name da API do Google para a ordenação
+                images = images.concat(res.result.files.map(f => ({ id: f.id, name: f.name, url: f.thumbnailLink.replace('=s220', '=s800') })));
                 pageToken = res.result.nextPageToken;
             } while (pageToken);
             return images;
@@ -345,15 +378,17 @@
 
             driveImages.forEach(img => {
                 if (!firebaseMap.has(img.id)) {
-                    const newDoc = { folderId: folderId, elo: 0, wins: 0, matches: 0, url: img.url, status: 'active', history24h: [] };
+                    const newDoc = { folderId: folderId, name: img.name, elo: 0, wins: 0, matches: 0, url: img.url, status: 'active', history24h: [] };
                     batch.set(collectionRef.doc(img.id), newDoc);
                     imgData.push({ id: img.id, ...newDoc });
                 } else {
                     const existing = firebaseMap.get(img.id);
                     existing.url = img.url; 
+                    existing.name = img.name; // Atualiza o nome se necessário
                     existing.wins = existing.wins || 0;
                     existing.matches = existing.matches || 0;
                     existing.status = existing.status || 'active';
+                    existing.history24h = existing.history24h || []; 
                     imgData.push({ id: img.id, ...existing });
                 }
             });
@@ -361,106 +396,147 @@
             folderData[folderId] = imgData; 
         }
 
-        // REQ 6 e 7: Avaliação Geral Dinâmica de Porcentagens
         function applyDynamicRules(folderId) {
             let pool = folderData[folderId];
             let activePool = pool.filter(i => i.status === 'active');
             let N = activePool.length;
-            
             if (N < 2) return;
 
-            let thresholdHC = Math.ceil((N - 1) * 0.33); // 33% dos oponentes possíveis
-            let thresholdEx = Math.ceil((N - 1) * 0.10); // 10% dos oponentes possíveis
+            let thresholdHC = Math.ceil((N - 1) * 0.33); 
+            let thresholdEx = Math.ceil((N - 1) * 0.10); 
 
             pool.forEach(img => {
                 if (img.status === 'active') {
                     let loyalty = getLoyalty(img);
-                    // Regra 6: Hors Concours
                     if (img.matches >= thresholdHC && loyalty >= 90) {
                         img.status = 'hors_concours';
                         db.collection('images').doc(img.id).update({ status: 'hors_concours' });
-                        // Mostra toast apenas se acontecer durante o uso, na carga inicial passa silencioso
-                    } 
-                    // Regra 7: Exclusão Sumária
-                    else if (img.matches >= thresholdEx && loyalty < 15) {
-                        applyRejection(img, true); // True silencia o toast na carga inicial
+                    } else if (img.matches >= thresholdEx && loyalty < 15) {
+                        applyRejection(img, true); 
                     }
                 }
             });
         }
 
         // ==========================================
-        // SISTEMA DE MATCHUP (Aleatório com Anti-Repetição 24h)
+        // MODO FOCO E ARENA
         // ==========================================
+        function startFocusMode(folderId, imgId) {
+            targetedImgInfo = { folderId, id: imgId };
+            document.getElementById('focus-mode-banner').style.display = 'block';
+            closeRank();
+            setupNextMatch();
+        }
+
+        function cancelFocusMode() {
+            targetedImgInfo = null;
+            document.getElementById('focus-mode-banner').style.display = 'none';
+            setupNextMatch();
+        }
+
         function setupNextMatch() {
             isProcessingVote = false;
             document.getElementById('fighter1').className = 'combatant';
             document.getElementById('fighter2').className = 'combatant';
-            
-            // Oculta novamente as frações de vitórias/matches
             document.getElementById('fraction1').style.display = 'none';
             document.getElementById('fraction2').style.display = 'none';
 
-            let validFolders = activeFolders.filter(f => {
-                let pool = folderData[f.id].filter(i => i.status === 'active'); // Exclui HC e Rejeitados
-                return pool.length >= 2;
-            });
-
-            if (validFolders.length === 0) {
-                alert("Todas as bolhas tiveram suas curadorias concluídas ou esgotadas!");
-                return;
-            }
-
-            const randomFolder = validFolders[Math.floor(Math.random() * validFolders.length)];
-            const activePool = folderData[randomFolder.id].filter(i => i.status === 'active');
-            
-            const now = Date.now();
-            const oneDay = 24 * 60 * 60 * 1000;
-            
             let p1, p2;
             let foundMatch = false;
             let attempts = 0;
+            const now = Date.now();
+            const oneDay = 24 * 60 * 60 * 1000;
 
-            while (!foundMatch && attempts < 100) {
-                p1 = activePool[Math.floor(Math.random() * activePool.length)];
+            if (targetedImgInfo) {
+                const folderId = targetedImgInfo.folderId;
+                const activePool = folderData[folderId].filter(i => i.status === 'active');
+                p1 = activePool.find(i => i.id === targetedImgInfo.id);
                 
-                const recentFights = (p1.history24h || []).filter(h => now - h.t <= oneDay);
-                let validOpponents = activePool.filter(img => {
-                    if (img.id === p1.id) return false; 
-                    const foughtRecently = recentFights.some(h => h.op === img.id);
-                    return !foughtRecently;
+                if (p1) {
+                    const recentFights = (p1.history24h || []).filter(h => now - h.t <= oneDay);
+                    let validOpponents = activePool.filter(img => {
+                        if (img.id === p1.id) return false;
+                        return !recentFights.some(h => h.op === img.id);
+                    });
+
+                    if (validOpponents.length > 0) {
+                        p2 = validOpponents[Math.floor(Math.random() * validOpponents.length)];
+                        foundMatch = true;
+                        currentMatchup = { folderId: folderId, img1: p1, img2: p2 };
+                    } else {
+                        alert("Esta imagem já disputou contra todos os oponentes válidos! O Modo Foco será encerrado.");
+                        cancelFocusMode();
+                        return; 
+                    }
+                } else {
+                    cancelFocusMode();
+                    return;
+                }
+            }
+
+            if (!targetedImgInfo && !foundMatch) {
+                let validFolders = activeFolders.filter(f => {
+                    let pool = folderData[f.id].filter(i => i.status === 'active');
+                    return pool.length >= 2;
                 });
 
-                if (validOpponents.length > 0) {
-                    p2 = validOpponents[Math.floor(Math.random() * validOpponents.length)];
-                    foundMatch = true;
+                if (validFolders.length === 0) {
+                    alert("Todas as bolhas tiveram suas curadorias concluídas ou esgotadas!");
+                    return;
                 }
-                attempts++;
+
+                const randomFolder = validFolders[Math.floor(Math.random() * validFolders.length)];
+                const activePool = folderData[randomFolder.id].filter(i => i.status === 'active');
+                
+                while (!foundMatch && attempts < 100) {
+                    p1 = activePool[Math.floor(Math.random() * activePool.length)];
+                    const recentFights = (p1.history24h || []).filter(h => now - h.t <= oneDay);
+                    
+                    let validOpponents = activePool.filter(img => {
+                        if (img.id === p1.id) return false; 
+                        return !recentFights.some(h => h.op === img.id);
+                    });
+
+                    if (validOpponents.length > 0) {
+                        p2 = validOpponents[Math.floor(Math.random() * validOpponents.length)];
+                        foundMatch = true;
+                    }
+                    attempts++;
+                }
+
+                if (!foundMatch) {
+                    p1 = activePool[Math.floor(Math.random() * activePool.length)];
+                    do { p2 = activePool[Math.floor(Math.random() * activePool.length)]; } while (p1.id === p2.id);
+                }
+
+                currentMatchup = { folderId: randomFolder.id, img1: p1, img2: p2 };
             }
 
-            if (!foundMatch) {
-                p1 = activePool[Math.floor(Math.random() * activePool.length)];
-                do { p2 = activePool[Math.floor(Math.random() * activePool.length)]; } while (p1.id === p2.id);
+            // REQ 4: Atualiza o nome da pasta no Header centralizado
+            const folderObj = activeFolders.find(f => f.id === currentMatchup.folderId);
+            if (folderObj) {
+                document.getElementById('header-folder-name').innerText = formatFolderName(folderObj.name);
             }
 
-            currentMatchup = { folderId: randomFolder.id, img1: p1, img2: p2 };
             updateArenaUI();
         }
 
         function updateArenaUI() {
-            const { img1, img2 } = currentMatchup;
+            const { img1, img2, folderId } = currentMatchup;
+            const activePool = folderData[folderId].filter(i => i.status === 'active');
+            const T = activePool.length > 1 ? activePool.length - 1 : 0;
             
             document.getElementById('img1').src = img1.url;
             document.getElementById('loyalty1').innerText = `L: ${getLoyalty(img1)}%`;
-            document.getElementById('fraction1').innerText = `W: ${img1.wins} / M: ${img1.matches}`;
+            document.getElementById('fraction1').innerText = `W: ${img1.wins}; M: ${img1.matches}; T: ${T}`;
 
             document.getElementById('img2').src = img2.url;
             document.getElementById('loyalty2').innerText = `L: ${getLoyalty(img2)}%`;
-            document.getElementById('fraction2').innerText = `W: ${img2.wins} / M: ${img2.matches}`;
+            document.getElementById('fraction2').innerText = `W: ${img2.wins}; M: ${img2.matches}; T: ${T}`;
         }
 
         // ==========================================
-        // LÓGICA DE EXCLUSÃO
+        // EXCLUSÃO E VOTAÇÃO
         // ==========================================
         async function applyRejection(img, silent = false) {
             img.status = 'rejected';
@@ -482,17 +558,12 @@
 
             const targetImg = imgNumber === 1 ? currentMatchup.img1 : currentMatchup.img2;
             document.getElementById(`fighter${imgNumber}`).classList.add('blocked');
-            
-            // Oculta o botão Undo, já que a deleção/bloqueio manual não será desfeita neste fluxo
             document.getElementById('undo_button').style.display = 'none';
 
             await applyRejection(targetImg);
             setTimeout(setupNextMatch, 400); 
         }
 
-        // ==========================================
-        // VOTAÇÃO E REGRAS DINÂMICAS AO VIVO
-        // ==========================================
         async function vote(winnerNumber) {
             if (isProcessingVote) return;
             isProcessingVote = true;
@@ -501,7 +572,6 @@
             const winner = winnerNumber === 1 ? img1 : img2;
             const loser = winnerNumber === 1 ? img2 : img1;
 
-            // Salva Snapshot para o Botão de Desfazer
             lastVoteState = {
                 folderId: folderId,
                 img1Ref: img1, img2Ref: img2,
@@ -511,13 +581,12 @@
                 winnerWasHC: false
             };
 
-            // Efeitos e revelação da Fração (W/M)
             document.getElementById(`fighter${winnerNumber}`).classList.add('winner');
             document.getElementById(`fighter${winnerNumber === 1 ? 2 : 1}`).classList.add('loser');
+            
             document.getElementById('fraction1').style.display = 'block';
             document.getElementById('fraction2').style.display = 'block';
 
-            // Matemática do tamanho da pasta para as regras
             const activePool = folderData[folderId].filter(i => i.status === 'active');
             const N = activePool.length;
             const thresholdHC = Math.ceil((N - 1) * 0.33);
@@ -536,13 +605,12 @@
             winner.history24h.push({ t: now, w: true, op: loser.id });
             winner.elo = winner.elo + K * (1 - (1 / (1 + Math.pow(10, (loser.elo - winner.elo) / 400))));
 
-            // Regra 6 (Hors Concours)
             if (winner.matches >= thresholdHC && getLoyalty(winner) >= 90) {
                 winner.status = 'hors_concours';
                 lastVoteState.winnerWasHC = true;
                 showToast("🌟 Imagem coroada Hors Concours!", "gold");
             }
-            db.collection('images').doc(winner.id).update({ elo: winner.elo, wins: winner.wins, matches: winner.matches, history24h: winner.history24h, status: winner.status });
+            db.collection('images').doc(winner.id).update({ elo: winner.elo, wins: winner.wins, matches: winner.matches, history24h: winner.history24h, status: winner.status, name: winner.name });
 
             // ==================
             // ATUALIZA LOSER
@@ -552,46 +620,35 @@
             loser.history24h.push({ t: now, w: false, op: winner.id });
             loser.elo = loser.elo + K * (0 - (1 / (1 + Math.pow(10, (winner.elo - loser.elo) / 400))));
 
-            // Regra 7 (Exclusão por Lealdade)
             if (loser.matches >= thresholdEx && getLoyalty(loser) < 15) {
                 lastVoteState.loserWasRejected = true;
-                applyRejection(loser, false); // False = vai gerar o Toast "Movido para Lixeira"
+                applyRejection(loser, false); 
             } else {
-                db.collection('images').doc(loser.id).update({ elo: loser.elo, matches: loser.matches, history24h: loser.history24h });
+                db.collection('images').doc(loser.id).update({ elo: loser.elo, matches: loser.matches, history24h: loser.history24h, name: loser.name });
             }
 
-            // Exibe botão de desfazer
             document.getElementById('undo_button').style.display = 'block';
-
-            // REQ 2: Delay aumentado para 1 segundo (1000ms) para você ler o placar
             setTimeout(setupNextMatch, 1000); 
         }
 
-        // ==========================================
-        // REQ 4: BOTÃO DESFAZER (UNDO)
-        // ==========================================
         async function undoLastVote() {
             if (!lastVoteState) return;
             const state = lastVoteState;
             
-            // Restaura a RAM local
             Object.assign(state.img1Ref, state.img1Ref.id === state.winnerOld.id ? state.winnerOld : state.loserOld);
             Object.assign(state.img2Ref, state.img2Ref.id === state.winnerOld.id ? state.winnerOld : state.loserOld);
 
             const img1 = state.img1Ref;
             const img2 = state.img2Ref;
 
-            // Restaura o DB
             db.collection('images').doc(img1.id).update({ elo: img1.elo, wins: img1.wins, matches: img1.matches, status: img1.status, history24h: img1.history24h });
             db.collection('images').doc(img2.id).update({ elo: img2.elo, wins: img2.wins, matches: img2.matches, status: img2.status, history24h: img2.history24h });
 
-            // Se o perdedor tinha ido pra lixeira, puxa ele de volta no Google Drive
             if (state.loserWasRejected) {
                 const loser = img1.id === state.loserOld.id ? img1 : img2;
                 gapi.client.drive.files.update({ fileId: loser.id, addParents: loser.folderId, removeParents: REJECT_FOLDER_ID, fields: 'id' });
             }
 
-            // Força a arena a recarregar a disputa anterior
             currentMatchup = { folderId: state.folderId, img1: img1, img2: img2 };
             lastVoteState = null;
             document.getElementById('undo_button').style.display = 'none';
@@ -608,15 +665,13 @@
         // ==========================================
         // MENUS E RANKS
         // ==========================================
-        // REQ 3: Progresso Dinâmico da Pasta
         function getFolderProgress(folderId) {
             let activePool = folderData[folderId].filter(i => i.status === 'active');
             let N = activePool.length;
             if (N < 2) return 100;
             
             let totalPossible = (N * (N - 1)) / 2;
-            let currentMatches = activePool.reduce((sum, img) => sum + img.matches, 0) / 2; // Divide por 2 pois cada match envolve 2 imagens
-            
+            let currentMatches = activePool.reduce((sum, img) => sum + img.matches, 0) / 2;
             return Math.min(100, Math.round((currentMatches / totalPossible) * 100));
         }
 
@@ -630,7 +685,6 @@
                 if (activeCount > 0) {
                     const div = document.createElement('div');
                     div.className = 'folder-item';
-                    // REQ 3: Exibição da % de progresso na bolha
                     div.innerHTML = `<span>${f.name}</span> <span class="count">${activeCount} ativas | ${getFolderProgress(f.id)}% comp.</span>`;
                     div.onclick = () => openFolderRank(f.id, f.name);
                     container.appendChild(div);
@@ -638,7 +692,7 @@
             });
         }
 
-        function renderGrid(imagesArray, title, subtitle = "") {
+        function renderGrid(imagesArray, title, subtitle = "", isFolderRank = false, folderId = null) {
             toggleMenu();
             document.getElementById('rank-title-area').innerHTML = `<h3>${title}</h3><div class="rank-subtitle">${subtitle}</div>`;
             const container = document.getElementById('rank-grid-container');
@@ -649,24 +703,39 @@
                 if(isRejected(img)) text = "EXCLUÍDA";
                 if(isHorsConcours(img)) text = "HORS CONC.";
                 
-                container.innerHTML += `<div class="rank-item"><img src="${img.url}" loading="lazy"><div class="rank-badge">#${i+1} | ${text}</div></div>`;
+                const div = document.createElement('div');
+                div.className = 'rank-item';
+                
+                // REQ 3: Adiciona classe exhausted se a imagem enfrentou todo o pool nas últimas 24h
+                let imgClass = '';
+                if (img.exhausted24h) imgClass = 'exhausted';
+                
+                div.innerHTML = `<img src="${img.url}" loading="lazy" class="${imgClass}"><div class="rank-badge">#${i+1} | ${text}</div>`;
+                
+                if (isFolderRank && img.status === 'active') {
+                    div.style.cursor = 'pointer';
+                    div.onclick = () => startFocusMode(folderId, img.id);
+                }
+                
+                container.appendChild(div);
             });
             document.getElementById('ranking-screen').style.display = 'flex';
         }
 
+        // Todos os Ranks usam a nova ordenação ELO > Nome (A-Z)
         function openLoyaltyRank() {
             let pool = [];
             for (let k in folderData) pool = pool.concat(folderData[k]);
             let invictas = pool.filter(i => i.status === 'active' && i.matches > 0 && getLoyalty(i) === 100);
-            invictas.sort((a, b) => b.matches - a.matches); 
-            renderGrid(invictas, "100% Lealdade (Ativas)", "Organizado por número de duelos invictos");
+            invictas.sort(sortEloName); 
+            renderGrid(invictas, "100% Lealdade (Ativas)", "Ordenado por ELO > Nome");
         }
 
         function openHorsConcoursRank() {
             let pool = [];
             for (let k in folderData) pool = pool.concat(folderData[k]);
             let hors = pool.filter(i => isHorsConcours(i));
-            hors.sort((a, b) => b.matches - a.matches); // Quem virou rei lutando mais ganha
+            hors.sort(sortEloName); 
             renderGrid(hors, "Galeria Hors Concours", "Elite da Curadoria (>90% Lealdade)");
         }
 
@@ -674,14 +743,26 @@
             let pool = [];
             for (let k in folderData) pool = pool.concat(folderData[k]);
             let rejeitadas = pool.filter(i => isRejected(i));
-            rejeitadas.sort((a, b) => b.matches - a.matches); 
+            rejeitadas.sort(sortEloName); 
             renderGrid(rejeitadas, "Relatório de Excluídas", "Eliminadas por baixa lealdade ou bloqueio");
         }
 
         function openFolderRank(folderId, folderName) {
-            let pool = folderData[folderId].filter(i => i.status === 'active');
-            pool.sort((a, b) => getLoyalty(b) - getLoyalty(a));
-            renderGrid(pool, `Bolha: ${folderName}`, `Progresso de Triagem: ${getFolderProgress(folderId)}%`);
+            const activePool = folderData[folderId].filter(i => i.status === 'active');
+            let pool = [...activePool];
+            
+            const now = Date.now();
+            const oneDay = 24 * 60 * 60 * 1000;
+            
+            // REQ 3: Avalia exaustão das últimas 24h para escurecer as thumbs
+            pool.forEach(img => {
+                const recentOps = (img.history24h || []).filter(h => now - h.t <= oneDay).map(h => h.op);
+                // Se todo oponente da pasta for ele mesmo ou estiver na lista de enfrentados das 24h, está exausta
+                img.exhausted24h = activePool.every(other => other.id === img.id || recentOps.includes(other.id));
+            });
+
+            pool.sort(sortEloName);
+            renderGrid(pool, `Bolha: ${formatFolderName(folderName)}`, `Progresso de Triagem: ${getFolderProgress(folderId)}% (CLIQUE PARA FOCAR)`, true, folderId);
         }
 
         function closeRank() { document.getElementById('ranking-screen').style.display = 'none'; }
