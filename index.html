@@ -20,7 +20,6 @@
            ========================================= */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         
-        /* 100dvh resolve o problema das barras de navegação do mobile escondendo o conteúdo */
         body { background-color: #000; color: #fff; overflow: hidden; height: 100dvh; width: 100vw; display: flex; flex-direction: column; }
 
         /* =========================================
@@ -56,7 +55,9 @@
         .menu-section-title { font-size: 0.8rem; color: #888; text-transform: uppercase; margin-bottom: 15px; margin-top: 20px; }
         .folder-item { background: #2a2a2a; padding: 12px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; cursor: pointer; }
         .folder-item span.count { color: #aaa; font-size: 0.85rem; }
-        .btn-global-rank { background: #e91e63; color: white; padding: 15px; border-radius: 8px; text-align: center; cursor: pointer; font-weight: bold; width: 100%; border: none; margin-top: 10px;}
+        .btn-global-rank { background: #333; color: white; padding: 15px; border-radius: 8px; text-align: left; cursor: pointer; font-weight: bold; width: 100%; border: none; margin-bottom: 10px;}
+        .btn-global-rank.gold { background: #ffc107; color: #000; }
+        .btn-global-rank.danger { background: #f44336; color: #fff; }
 
         /* =========================================
            ÁREA DE DUELO (MATCHUP)
@@ -72,7 +73,6 @@
         }
         .combatant:active img { transform: scale(0.98); }
 
-        /* Overlay de Informações na Foto respeitando botões nativos do OS */
         .img-overlay {
             position: absolute; bottom: 0; left: 0; width: 100%; 
             padding: 40px 15px max(15px, env(safe-area-inset-bottom)) 15px; 
@@ -82,35 +82,37 @@
         .stats-container { display: flex; flex-direction: column; gap: 4px; text-shadow: 0 2px 4px rgba(0,0,0,1); }
         .stat-loyalty { font-weight: bold; font-size: 1.1rem; color: #ffeb3b; }
         .stat-fraction { font-size: 0.9rem; color: #fff; font-weight: 500; }
-        .stat-remaining { font-size: 0.8rem; color: #aaa; margin-top: 2px; }
 
-        /* Botão de Coração (Favoritas) */
-        .btn-heart {
-            background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); border-radius: 50%; width: 45px; height: 45px; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; pointer-events: auto; backdrop-filter: blur(5px); color: #fff; transition: all 0.2s; margin-bottom: 5px; flex-shrink: 0;
+        /* Botão de Lixeira (Block) */
+        .btn-block {
+            background: rgba(0,0,0,0.7); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; width: 50px; height: 50px; font-size: 1.3rem; display: flex; align-items: center; justify-content: center; cursor: pointer; pointer-events: auto; backdrop-filter: blur(5px); color: #fff; transition: all 0.2s; margin-bottom: 5px; flex-shrink: 0;
         }
-        .btn-heart.active { color: #e91e63; border-color: #e91e63; background: rgba(233, 30, 99, 0.2); }
+        .btn-block:active { background: rgba(244, 67, 54, 0.4); border-color: #f44336; transform: scale(0.9); }
 
-        /* Animações de Vitória/Derrota */
+        /* Animações de Vitória/Derrota/Bloqueio */
         .combatant.winner { z-index: 10; animation: winPulse 0.5s forwards; }
         .combatant.loser { filter: grayscale(100%) opacity(0.5); }
+        .combatant.blocked { filter: sepia(100%) hue-rotate(300deg) blur(2px); opacity: 0.3; }
         @keyframes winPulse { 0% { transform: scale(1); box-shadow: inset 0 0 0px 0px #4caf50; } 50% { transform: scale(1.02); box-shadow: inset 0 0 0px 10px #4caf50; } 100% { transform: scale(1); box-shadow: inset 0 0 0px 0px #4caf50; } }
 
         /* =========================================
-           TELAS DE RANKING
+           TELAS DE RANKING (GRID DE 5 COLUNAS)
            ========================================= */
         #ranking-screen {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: #000; z-index: 2000; display: none; flex-direction: column;
         }
-        .rank-header { padding: 20px; display: flex; align-items: center; background: #111; border-bottom: 1px solid #333; padding-top: max(20px, env(safe-area-inset-top)); }
+        .rank-header { padding: 15px; display: flex; align-items: center; background: #111; border-bottom: 1px solid #333; padding-top: max(15px, env(safe-area-inset-top)); }
         .rank-header button { background: none; border: none; color: #fff; font-size: 1.5rem; margin-right: 15px; cursor: pointer; }
-        .rank-title-container { display: flex; flex-direction: column; }
         .rank-title-container h3 { margin: 0; font-size: 1.1rem; }
         .rank-subtitle { font-size: 0.8rem; color: #aaa; margin-top: 4px; }
         
-        .rank-grid { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 2px; padding-bottom: max(20px, env(safe-area-inset-bottom)); }
-        .rank-item { position: relative; aspect-ratio: 1; background: #222; }
+        /* Grid de 5 Colunas Exato */
+        .rank-grid { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; padding: 2px; padding-bottom: max(20px, env(safe-area-inset-bottom)); align-content: flex-start; }
+        .rank-item { position: relative; aspect-ratio: 1; background: #222; width: 100%; }
         .rank-item img { width: 100%; height: 100%; object-fit: cover; }
-        .rank-badge { position: absolute; bottom: 5px; left: 5px; background: rgba(0,0,0,0.8); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; color: #fff; }
+        
+        /* Otimização da Badge para caber nas miniaturas menores */
+        .rank-badge { position: absolute; bottom: 3px; left: 3px; background: rgba(0,0,0,0.85); padding: 2px 4px; border-radius: 3px; font-size: 0.6rem; font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90%; }
     </style>
 </head>
 <body>
@@ -134,13 +136,15 @@
     <!-- MENU SANDUÍCHE -->
     <div id="side-menu">
         <div class="menu-header">
-            <h3>Navegação</h3>
+            <h3>Painel de Controle</h3>
             <button class="close-btn" onclick="toggleMenu()">×</button>
         </div>
         <div class="menu-content">
-            <button class="btn-global-rank" onclick="openLoyaltyRank()" style="background:#ff9800; color:#000;">🏆 100% LEALDADE</button>
-            <button class="btn-global-rank" onclick="openHeartRank()">❤️ FAVORITAS MANUAIS</button>
-            <div class="menu-section-title">Bolhas de Curadoria (>30 img)</div>
+            <button class="btn-global-rank gold" onclick="openHorsConcoursRank()">🌟 HORS CONCOURS (>90%)</button>
+            <button class="btn-global-rank danger" onclick="openRejectedReport()">🗑️ RELATÓRIO DE EXCLUÍDAS</button>
+            <button class="btn-global-rank" onclick="openLoyaltyRank()">🏆 GERAL (100% Invictas)</button>
+            
+            <div class="menu-section-title">Bolhas em Disputa Ativa</div>
             <div id="folder-list-container">
                 <!-- Preenchido via JS -->
             </div>
@@ -151,13 +155,9 @@
     <div id="ranking-screen">
         <div class="rank-header">
             <button onclick="closeRank()">←</button>
-            <div class="rank-title-container" id="rank-title-area">
-                <!-- Preenchido via JS -->
-            </div>
+            <div class="rank-title-container" id="rank-title-area"></div>
         </div>
-        <div class="rank-grid" id="rank-grid-container">
-            <!-- Preenchido via JS -->
-        </div>
+        <div class="rank-grid" id="rank-grid-container"></div>
     </div>
 
     <!-- ARENA DE DUELO -->
@@ -165,20 +165,16 @@
         <div class="combatant" id="fighter1" onclick="vote(1)">
             <img id="img1" src="" alt="Fighter 1">
             <div class="img-overlay">
-                <div class="stats-container" id="stats1">
-                    <!-- Preenchido via JS -->
-                </div>
-                <button class="btn-heart" id="heart1" onclick="toggleHeart(event, 1)">🤍</button>
+                <div class="stats-container" id="stats1"></div>
+                <button class="btn-block" onclick="blockImage(event, 1)" title="Bloquear e Excluir">🗑️</button>
             </div>
         </div>
         
         <div class="combatant" id="fighter2" onclick="vote(2)">
             <img id="img2" src="" alt="Fighter 2">
             <div class="img-overlay">
-                <div class="stats-container" id="stats2">
-                    <!-- Preenchido via JS -->
-                </div>
-                <button class="btn-heart" id="heart2" onclick="toggleHeart(event, 2)">🤍</button>
+                <div class="stats-container" id="stats2"></div>
+                <button class="btn-block" onclick="blockImage(event, 2)" title="Bloquear e Excluir">🗑️</button>
             </div>
         </div>
     </div>
@@ -212,8 +208,10 @@
         let currentMatchup = { folderId: null, img1: null, img2: null };
         let isProcessingVote = false;
 
-        // Cálculos Auxiliares
+        // Regras Matemáticas e Auxiliares
         const getLoyalty = (img) => img.matches > 0 ? Math.round((img.wins / img.matches) * 100) : 0;
+        const isHorsConcours = (img) => img.matches >= 30 && getLoyalty(img) >= 90;
+        const isRejected = (img) => img.status === 'rejected';
 
         // ==========================================
         // INICIALIZAÇÃO
@@ -252,14 +250,14 @@
                 updateLoadingText(`Avaliando pasta: ${folders[i].name}...`);
                 const images = await getImagesFromFolder(folders[i].id);
                 
-                if (images.length >= 30) {
+                if (images.length > 0) {
                     await syncFolderWithFirebase(folders[i].id, images);
-                    activeFolders.push({ id: folders[i].id, name: folders[i].name, count: images.length });
+                    activeFolders.push({ id: folders[i].id, name: folders[i].name });
                 }
             }
 
             if (activeFolders.length === 0) {
-                updateLoadingText("Nenhuma pasta possui 30 ou mais arquivos válidos.");
+                updateLoadingText("Nenhuma imagem válida encontrada.");
                 return;
             }
 
@@ -305,16 +303,17 @@
 
             driveImages.forEach(img => {
                 if (!firebaseMap.has(img.id)) {
-                    // Inicialização incluindo Contadores de Lealdade
-                    const newDoc = { folderId: folderId, elo: 0, hearts: 0, wins: 0, matches: 0, url: img.url, faced: [] };
+                    // Inicializamos a history24h (agora irá armazenar também o ID do oponente)
+                    const newDoc = { folderId: folderId, elo: 0, wins: 0, matches: 0, url: img.url, status: 'active', history24h: [] };
                     batch.set(collectionRef.doc(img.id), newDoc);
                     imgData.push({ id: img.id, ...newDoc });
                 } else {
                     const existing = firebaseMap.get(img.id);
                     existing.url = img.url; 
-                    // Fallback para documentos antigos
                     existing.wins = existing.wins || 0;
                     existing.matches = existing.matches || 0;
+                    existing.status = existing.status || 'active';
+                    existing.history24h = existing.history24h || []; 
                     imgData.push({ id: img.id, ...existing });
                 }
             });
@@ -323,34 +322,60 @@
         }
 
         // ==========================================
-        // SISTEMA DE MATCHUP (ROUND-ROBIN)
+        // SISTEMA DE MATCHUP (Anti-Repetição de 24h)
         // ==========================================
         function setupNextMatch() {
             isProcessingVote = false;
             document.getElementById('fighter1').className = 'combatant';
             document.getElementById('fighter2').className = 'combatant';
 
-            const randomFolder = activeFolders[Math.floor(Math.random() * activeFolders.length)];
-            const images = folderData[randomFolder.id];
+            let validFolders = activeFolders.filter(f => {
+                let pool = folderData[f.id].filter(i => !isRejected(i) && !isHorsConcours(i));
+                return pool.length >= 2;
+            });
+
+            if (validFolders.length === 0) {
+                alert("Todas as bolhas tiveram suas curadorias concluídas ou esgotadas!");
+                return;
+            }
+
+            const randomFolder = validFolders[Math.floor(Math.random() * validFolders.length)];
+            const activePool = folderData[randomFolder.id].filter(i => !isRejected(i) && !isHorsConcours(i));
+            
+            const now = Date.now();
+            const oneDay = 24 * 60 * 60 * 1000;
             
             let p1, p2;
+            let foundMatch = false;
             let attempts = 0;
-            const maxAttempts = 200;
 
-            while (attempts < maxAttempts) {
-                p1 = images[Math.floor(Math.random() * images.length)];
-                p2 = images[Math.floor(Math.random() * images.length)];
+            // Tenta encontrar um par que não tenha se enfrentado nas últimas 24h
+            while (!foundMatch && attempts < 100) {
+                p1 = activePool[Math.floor(Math.random() * activePool.length)];
                 
-                if (p1.id !== p2.id) {
-                    const p1Faced = p1.faced || [];
-                    if (!p1Faced.includes(p2.id)) break; 
+                // Pega o histórico recente da p1 para não repetir oponentes
+                const recentFights = (p1.history24h || []).filter(h => now - h.t <= oneDay);
+                
+                // Filtra a piscina de possíveis oponentes (p2)
+                let validOpponents = activePool.filter(img => {
+                    if (img.id === p1.id) return false; // Não pode ser ela mesma
+                    
+                    // Verifica se o ID desta imagem (img.id) está no histórico recente de p1
+                    const foughtRecently = recentFights.some(h => h.op === img.id);
+                    return !foughtRecently;
+                });
+
+                if (validOpponents.length > 0) {
+                    p2 = validOpponents[Math.floor(Math.random() * validOpponents.length)];
+                    foundMatch = true;
                 }
                 attempts++;
             }
 
-            if (attempts >= maxAttempts) {
-                handleCycleEnd(randomFolder.id);
-                return; 
+            // Fallback: Se por acaso todo mundo da pasta lutou com todo mundo (pasta minúscula), escolhe aleatório
+            if (!foundMatch) {
+                p1 = activePool[Math.floor(Math.random() * activePool.length)];
+                do { p2 = activePool[Math.floor(Math.random() * activePool.length)]; } while (p1.id === p2.id);
             }
 
             currentMatchup = { folderId: randomFolder.id, img1: p1, img2: p2 };
@@ -358,40 +383,52 @@
         }
 
         function updateArenaUI() {
-            const { img1, img2, folderId } = currentMatchup;
-            const N = folderData[folderId].length; // Total de arquivos na pasta
-
-            // --- Cálculos Imagem 1 ---
-            const faced1 = img1.faced ? img1.faced.length : 0;
-            const rem1 = N > 1 ? Math.round(((N - 1 - faced1) / (N - 1)) * 100) : 0;
+            const { img1, img2 } = currentMatchup;
             
             document.getElementById('img1').src = img1.url;
             document.getElementById('stats1').innerHTML = `
-                <div class="stat-loyalty">🏆 ${getLoyalty(img1)}%</div>
-                <div class="stat-fraction">Vitórias: ${img1.wins || 0} / ${img1.matches || 0}</div>
-                <div class="stat-remaining">Faltam neste ciclo: ${rem1}%</div>
+                <div class="stat-loyalty">L: ${getLoyalty(img1)}%</div>
+                <div class="stat-fraction">W: ${img1.wins} / M: ${img1.matches}</div>
             `;
-            const h1 = document.getElementById('heart1');
-            h1.className = img1.hearts > 0 ? 'btn-heart active' : 'btn-heart';
-            h1.innerText = img1.hearts > 0 ? '❤️' : '🤍';
 
-            // --- Cálculos Imagem 2 ---
-            const faced2 = img2.faced ? img2.faced.length : 0;
-            const rem2 = N > 1 ? Math.round(((N - 1 - faced2) / (N - 1)) * 100) : 0;
-            
             document.getElementById('img2').src = img2.url;
             document.getElementById('stats2').innerHTML = `
-                <div class="stat-loyalty">🏆 ${getLoyalty(img2)}%</div>
-                <div class="stat-fraction">Vitórias: ${img2.wins || 0} / ${img2.matches || 0}</div>
-                <div class="stat-remaining">Faltam neste ciclo: ${rem2}%</div>
+                <div class="stat-loyalty">L: ${getLoyalty(img2)}%</div>
+                <div class="stat-fraction">W: ${img2.wins} / M: ${img2.matches}</div>
             `;
-            const h2 = document.getElementById('heart2');
-            h2.className = img2.hearts > 0 ? 'btn-heart active' : 'btn-heart';
-            h2.innerText = img2.hearts > 0 ? '❤️' : '🤍';
         }
 
         // ==========================================
-        // CÁLCULO DE ELO E VOTAÇÃO
+        // LÓGICA DE EXCLUSÃO
+        // ==========================================
+        async function applyRejection(img) {
+            img.status = 'rejected';
+            db.collection('images').doc(img.id).update({ status: 'rejected' });
+            
+            // Move no Google Drive para a pasta Lixeira
+            try {
+                await gapi.client.drive.files.update({
+                    fileId: img.id, addParents: REJECT_FOLDER_ID, removeParents: img.folderId, fields: 'id'
+                });
+            } catch (e) {
+                console.error("Erro ao mover no drive", e);
+            }
+        }
+
+        async function blockImage(e, imgNumber) {
+            e.stopPropagation(); 
+            if (isProcessingVote) return;
+            isProcessingVote = true;
+
+            const targetImg = imgNumber === 1 ? currentMatchup.img1 : currentMatchup.img2;
+            document.getElementById(`fighter${imgNumber}`).classList.add('blocked');
+            
+            await applyRejection(targetImg);
+            setTimeout(setupNextMatch, 400); 
+        }
+
+        // ==========================================
+        // CÁLCULO DE ELO, VOTAÇÃO E MORTE SÚBITA 24H
         // ==========================================
         async function vote(winnerNumber) {
             if (isProcessingVote) return;
@@ -404,92 +441,58 @@
             document.getElementById(`fighter${winnerNumber}`).classList.add('winner');
             document.getElementById(`fighter${winnerNumber === 1 ? 2 : 1}`).classList.add('loser');
 
-            // Cálculo ELO
+            const now = Date.now();
+            const oneDay = 24 * 60 * 60 * 1000;
+
+            // ==================
+            // ATUALIZA O WINNER
+            // ==================
+            winner.wins += 1;
+            winner.matches += 1;
+            
+            // Limpa o histórico velho e anota a vitória + oponente
+            winner.history24h = (winner.history24h || []).filter(h => now - h.t <= oneDay);
+            winner.history24h.push({ t: now, w: true, op: loser.id });
+
             const K = 32;
             const expectedWinner = 1 / (1 + Math.pow(10, (loser.elo - winner.elo) / 400));
-            const expectedLoser = 1 / (1 + Math.pow(10, (winner.elo - loser.elo) / 400));
+            winner.elo = winner.elo + K * (1 - expectedWinner);
 
-            const newWinnerElo = winner.elo + K * (1 - expectedWinner);
-            const newLoserElo = loser.elo + K * (0 - expectedLoser);
+            db.collection('images').doc(winner.id).update({ elo: winner.elo, wins: winner.wins, matches: winner.matches, history24h: winner.history24h });
 
-            // Atualiza RAM (Lealdade e ELO)
-            winner.elo = newWinnerElo;
-            winner.faced.push(loser.id);
-            winner.wins = (winner.wins || 0) + 1;
-            winner.matches = (winner.matches || 0) + 1;
-
-            loser.elo = newLoserElo;
-            loser.faced.push(winner.id);
-            loser.matches = (loser.matches || 0) + 1;
-
-            // Envia para Firebase
-            db.collection('images').doc(winner.id).update({ elo: newWinnerElo, faced: winner.faced, wins: winner.wins, matches: winner.matches });
-            db.collection('images').doc(loser.id).update({ elo: newLoserElo, faced: loser.faced, matches: loser.matches });
-
-            setTimeout(setupNextMatch, 600); 
-        }
-
-        async function toggleHeart(e, fNumber) {
-            e.stopPropagation(); 
-            const img = fNumber === 1 ? currentMatchup.img1 : currentMatchup.img2;
-            const btn = document.getElementById(`heart${fNumber}`);
+            // ==================
+            // ATUALIZA O LOSER E CHECA A MORTE SÚBITA DE 24H
+            // ==================
+            loser.matches += 1;
             
-            if (img.hearts === 0) {
-                img.hearts = 1;
-                btn.className = 'btn-heart active';
-                btn.innerText = '❤️';
-            } else {
-                img.hearts = 0;
-                btn.className = 'btn-heart';
-                btn.innerText = '🤍';
-            }
-            db.collection('images').doc(img.id).update({ hearts: img.hearts });
-        }
+            // Limpa o histórico velho e anota a derrota + oponente
+            loser.history24h = (loser.history24h || []).filter(h => now - h.t <= oneDay);
+            loser.history24h.push({ t: now, w: false, op: winner.id });
 
-        // ==========================================
-        // FIM DE CICLO: EXPURGO POR LEALDADE (< 15%)
-        // ==========================================
-        async function handleCycleEnd(folderId) {
-            document.getElementById('loading-overlay').style.display = 'flex';
-            updateLoadingText("Ciclo completo! Expurgando imagens infiéis (<15%)...");
+            const expectedLoser = 1 / (1 + Math.pow(10, (winner.elo - loser.elo) / 400));
+            loser.elo = loser.elo + K * (0 - expectedLoser);
 
-            let images = folderData[folderId];
-            let survivingImages = [];
-            let movePromises = [];
-
-            for (let img of images) {
-                let loyaltyScore = getLoyalty(img);
+            // REGRA 6: Teve mais de 10 disputas nas ultimas 24h E não alcançou 15% de lealdade nesse período
+            let executed = false;
+            if (loser.history24h.length > 10) {
+                const wins24h = loser.history24h.filter(h => h.w === true).length;
+                const loyalty24h = (wins24h / loser.history24h.length) * 100;
                 
-                // Exclusão por Baixa Lealdade
-                if (img.matches > 0 && loyaltyScore < 15) {
-                    movePromises.push(
-                        gapi.client.drive.files.update({
-                            fileId: img.id, addParents: REJECT_FOLDER_ID, removeParents: folderId, fields: 'id'
-                        })
-                    );
-                    db.collection('images').doc(img.id).delete();
-                } else {
-                    img.faced = [];
-                    db.collection('images').doc(img.id).update({ faced: [] });
-                    survivingImages.push(img);
+                if (loyalty24h < 15) {
+                    executed = true;
+                    applyRejection(loser);
                 }
             }
 
-            await Promise.all(movePromises);
-            folderData[folderId] = survivingImages;
-            
-            if (survivingImages.length < 30) {
-                activeFolders = activeFolders.filter(f => f.id !== folderId);
-                alert(`Uma pasta atingiu menos de 30 imagens e foi aposentada das disputas.`);
-                renderMenu();
+            if (!executed) {
+                db.collection('images').doc(loser.id).update({ elo: loser.elo, matches: loser.matches, history24h: loser.history24h });
             }
 
-            document.getElementById('loading-overlay').style.display = 'none';
-            setupNextMatch();
+            setTimeout(setupNextMatch, 500); 
         }
 
         // ==========================================
-        // MENUS E RANKS
+        // MENUS E RANKS (GRID DE 5)
         // ==========================================
         function toggleMenu() { document.getElementById('side-menu').classList.toggle('open'); }
 
@@ -497,72 +500,61 @@
             const container = document.getElementById('folder-list-container');
             container.innerHTML = '';
             activeFolders.forEach(f => {
-                const div = document.createElement('div');
-                div.className = 'folder-item';
-                div.innerHTML = `<span>${f.name}</span> <span class="count">${folderData[f.id].length} img</span>`;
-                div.onclick = () => openFolderRank(f.id, f.name);
-                container.appendChild(div);
+                const activeCount = folderData[f.id].filter(i => !isRejected(i)).length;
+                if (activeCount > 0) {
+                    const div = document.createElement('div');
+                    div.className = 'folder-item';
+                    div.innerHTML = `<span>${f.name}</span> <span class="count">${activeCount} ativas</span>`;
+                    div.onclick = () => openFolderRank(f.id, f.name);
+                    container.appendChild(div);
+                }
             });
+        }
+
+        function renderGrid(imagesArray, title, subtitle = "") {
+            toggleMenu();
+            document.getElementById('rank-title-area').innerHTML = `<h3>${title}</h3><div class="rank-subtitle">${subtitle}</div>`;
+            const container = document.getElementById('rank-grid-container');
+            container.innerHTML = '';
+
+            imagesArray.forEach((img, i) => {
+                let text = `L:${getLoyalty(img)}%`;
+                if(isRejected(img)) text = "EXCLUÍDA";
+                if(isHorsConcours(img)) text = "HORS CONCOURS";
+                
+                container.innerHTML += `<div class="rank-item"><img src="${img.url}" loading="lazy"><div class="rank-badge">#${i+1} | ${text}</div></div>`;
+            });
+            document.getElementById('ranking-screen').style.display = 'flex';
         }
 
         function openLoyaltyRank() {
-            toggleMenu();
-            document.getElementById('rank-title-area').innerHTML = `<h3>Ranking Global: 100% Lealdade</h3>`;
-            const container = document.getElementById('rank-grid-container');
-            container.innerHTML = '';
-
-            let allImages = [];
-            for (let key in folderData) { allImages = allImages.concat(folderData[key]); }
-            
-            // Filtra: Participou de lutas E venceu todas
-            let loyalImages = allImages.filter(i => i.matches > 0 && getLoyalty(i) === 100);
-            loyalImages.sort((a, b) => b.elo - a.elo); // Desempate por ELO
-
-            loyalImages.forEach(img => {
-                container.innerHTML += `<div class="rank-item"><img src="${img.url}"><div class="rank-badge">🏆 ${Math.round(img.elo)}</div></div>`;
-            });
-            document.getElementById('ranking-screen').style.display = 'flex';
+            let pool = [];
+            for (let k in folderData) pool = pool.concat(folderData[k]);
+            let invictas = pool.filter(i => !isRejected(i) && i.matches > 0 && getLoyalty(i) === 100);
+            invictas.sort((a, b) => b.matches - a.matches); // Quem tem 100% com mais lutas ganha
+            renderGrid(invictas, "100% Lealdade Geral", "Organizado por número de duelos invictos");
         }
 
-        function openHeartRank() {
-            toggleMenu();
-            document.getElementById('rank-title-area').innerHTML = `<h3>Favoritas (Manuais)</h3>`;
-            const container = document.getElementById('rank-grid-container');
-            container.innerHTML = '';
+        function openHorsConcoursRank() {
+            let pool = [];
+            for (let k in folderData) pool = pool.concat(folderData[k]);
+            let hors = pool.filter(i => isHorsConcours(i));
+            hors.sort((a, b) => getLoyalty(b) - getLoyalty(a));
+            renderGrid(hors, "Galeria Hors Concours", "Mestres da Curadoria (>30 duelos, >90% Lealdade)");
+        }
 
-            let heartImages = [];
-            for (let key in folderData) { heartImages = heartImages.concat(folderData[key].filter(i => i.hearts > 0)); }
-            heartImages.sort((a, b) => b.elo - a.elo);
-
-            heartImages.forEach(img => {
-                container.innerHTML += `<div class="rank-item"><img src="${img.url}"><div class="rank-badge">❤️ ${Math.round(img.elo)}</div></div>`;
-            });
-            document.getElementById('ranking-screen').style.display = 'flex';
+        function openRejectedReport() {
+            let pool = [];
+            for (let k in folderData) pool = pool.concat(folderData[k]);
+            let rejeitadas = pool.filter(i => isRejected(i));
+            rejeitadas.sort((a, b) => b.matches - a.matches); // Ordena pelas que lutaram mais antes de cair
+            renderGrid(rejeitadas, "Relatório de Excluídas", "Eliminadas por baixa lealdade ou bloqueio manual");
         }
 
         function openFolderRank(folderId, folderName) {
-            toggleMenu();
-            const container = document.getElementById('rank-grid-container');
-            container.innerHTML = '';
-
-            // Cálculo do progresso do Ciclo
-            const N = folderData[folderId].length;
-            const totalPossibleMatches = (N * (N - 1)) / 2;
-            
-            // Soma todos os oponentes enfrentados na pasta atual e divide por 2 (pois 1 match engloba 2 fotos)
-            const currentMatches = folderData[folderId].reduce((acc, img) => acc + (img.faced ? img.faced.length : 0), 0) / 2;
-            const cycleProgress = totalPossibleMatches > 0 ? Math.round((currentMatches / totalPossibleMatches) * 100) : 0;
-
-            document.getElementById('rank-title-area').innerHTML = `
-                <h3>Top: ${folderName}</h3>
-                <div class="rank-subtitle">Progresso do Ciclo: ${cycleProgress}%</div>
-            `;
-
-            let sorted = [...folderData[folderId]].sort((a, b) => getLoyalty(b) - getLoyalty(a)); // Ordena primeiro por lealdade
-            sorted.forEach((img, i) => {
-                container.innerHTML += `<div class="rank-item"><img src="${img.url}"><div class="rank-badge">#${i+1} | L: ${getLoyalty(img)}%</div></div>`;
-            });
-            document.getElementById('ranking-screen').style.display = 'flex';
+            let pool = folderData[folderId].filter(i => !isRejected(i) && !isHorsConcours(i));
+            pool.sort((a, b) => getLoyalty(b) - getLoyalty(a));
+            renderGrid(pool, `Bolha: ${folderName}`, "Ativas - Ordenadas por Taxa de Vitória");
         }
 
         function closeRank() { document.getElementById('ranking-screen').style.display = 'none'; }
