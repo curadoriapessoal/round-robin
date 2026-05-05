@@ -6,11 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#000000">
 
-    <!-- Firebase Compat Libraries -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
-    <!-- Google Drive API -->
     <script src="https://accounts.google.com/gsi/client" onload="initTokenClient()" async defer></script>
     <script src="https://apis.google.com/js/api.js" onload="gapiLoaded()" async defer></script>
 
@@ -75,12 +73,14 @@
         .close-btn { background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
         .menu-content { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: max(20px, env(safe-area-inset-bottom)); }
         
-        .menu-section-title { font-size: 0.8rem; color: #888; text-transform: uppercase; margin-bottom: 15px; margin-top: 20px; }
+        .menu-section-title { font-size: 0.8rem; color: #888; text-transform: uppercase; margin-bottom: 15px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center; }
         .folder-item { background: #2a2a2a; padding: 12px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; cursor: pointer; border-left: 4px solid #4caf50; }
         .folder-item span.count { color: #aaa; font-size: 0.85rem; }
+        
         .btn-global-rank { background: #333; color: white; padding: 15px; border-radius: 8px; text-align: left; cursor: pointer; font-weight: bold; width: 100%; border: none; margin-bottom: 10px;}
         .btn-global-rank.gold { background: #ffc107; color: #000; }
         .btn-global-rank.danger { background: #f44336; color: #fff; }
+        .btn-global-rank.info { background: #2196f3; color: #fff; }
 
         /* =========================================
            ÁREA DE DUELO (MATCHUP)
@@ -137,7 +137,6 @@
         .rank-grid { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; padding: 2px; padding-bottom: max(20px, env(safe-area-inset-bottom)); align-content: flex-start; }
         .rank-item { position: relative; aspect-ratio: 1; background: #222; width: 100%; }
         
-        /* Classe especial para imagens que já lutaram com todos na janela de 24h */
         .rank-item img { width: 100%; height: 100%; object-fit: cover; transition: all 0.3s; }
         .rank-item img.exhausted { opacity: 0.3; filter: grayscale(80%); }
 
@@ -146,7 +145,6 @@
 </head>
 <body>
 
-    <!-- OVERLAYS E TOAST -->
     <div id="toast-container"></div>
 
     <div id="auth-overlay">
@@ -158,14 +156,12 @@
         <div id="loading-text">Sincronizando banco de dados...</div>
     </div>
 
-    <!-- CABEÇALHO -->
     <div id="header">
         <div id="app-title">ELO MATCHUP</div>
         <div id="header-folder-name"></div>
         <button id="menu-btn" onclick="toggleMenu()">☰</button>
     </div>
 
-    <!-- MENU SANDUÍCHE -->
     <div id="side-menu">
         <div class="menu-header">
             <h3>Painel de Controle</h3>
@@ -175,13 +171,16 @@
             <button class="btn-global-rank gold" onclick="openHorsConcoursRank()">🌟 HORS CONCOURS (>90%)</button>
             <button class="btn-global-rank danger" onclick="openRejectedReport()">🗑️ RELATÓRIO DE EXCLUÍDAS</button>
             <button class="btn-global-rank" onclick="openLoyaltyRank()">🏆 GERAL (100% Invictas)</button>
+            <button class="btn-global-rank info" onclick="resetAllData()">♻️ ZERAR TORNEIO (RESET)</button>
             
-            <div class="menu-section-title">Bolhas em Disputa Ativa</div>
+            <div class="menu-section-title">
+                <span>Bolhas em Disputa Ativa</span>
+                <span id="eta-display" style="color:#ff9800; font-weight:bold; font-size:0.75rem;">⏳ ETA: --</span>
+            </div>
             <div id="folder-list-container"></div>
         </div>
     </div>
 
-    <!-- TELA DE RANKING -->
     <div id="ranking-screen">
         <div class="rank-header">
             <button onclick="closeRank()">←</button>
@@ -190,7 +189,6 @@
         <div class="rank-grid" id="rank-grid-container"></div>
     </div>
 
-    <!-- ARENA DE DUELO -->
     <div id="arena">
         <button id="undo_button" onclick="undoLastVote()">↩ Desfazer Voto</button>
         <div id="focus-mode-banner" onclick="cancelFocusMode()">MODO FOCO ATIVO<br><span style="font-size: 0.65rem; font-weight: normal;">Clique para sair</span></div>
@@ -220,7 +218,7 @@
 
     <script type="text/javascript">
         // ==========================================
-        // REQ: Refresh a cada 20 minutos (1.200.000 ms)
+        // Refresh a cada 20 minutos (1.200.000 ms)
         // ==========================================
         setTimeout(() => { window.location.reload(); }, 20 * 60 * 1000);
 
@@ -254,12 +252,15 @@
         let lastVoteState = null; 
         let targetedImgInfo = null;
 
+        // Variáveis Dinâmicas ETA (Estimated Time to Completion)
+        let duelStartTime = Date.now();
+        let duelTimes = []; // Guarda a duração dos últimos 30 duelos válidos
+
         // Regras Matemáticas e Ordenação
         const getLoyalty = (img) => img.matches > 0 ? Math.round((img.wins / img.matches) * 100) : 0;
         const isHorsConcours = (img) => img.status === 'hors_concours';
         const isRejected = (img) => img.status === 'rejected';
 
-        // REQ: Ordenação Dupla (ELO > Nome A-Z)
         const sortEloName = (a, b) => {
             if (b.elo !== a.elo) return b.elo - a.elo;
             const nameA = a.name || "";
@@ -267,10 +268,32 @@
             return nameA.localeCompare(nameB);
         };
 
-        // Formatação do Header
         function formatFolderName(name) {
-            let formatted = name.replace(/^\d+\s*/, ''); // Tira número inicial
-            return formatted.split('-')[0].trim(); // Tira do hífen pra frente
+            let formatted = name.replace(/^\d+\s*/, ''); 
+            return formatted.split('-')[0].trim(); 
+        }
+
+        // ==========================================
+        // LÓGICA DE CHECKPOINTS (Janela Dinâmica)
+        // ==========================================
+        function getNextCheckpoint(matches) {
+            if (matches < 10) return 10;
+            if (matches < 20) return 20;
+            if (matches < 30) return 30;
+            if (matches < 40) return 40;
+            if (matches < 50) return 50;
+            return Math.ceil((matches + 1) / 10) * 10;
+        }
+
+        function checkCheckpoints(img) {
+            let m = img.matches;
+            let l = getLoyalty(img);
+            if (m >= 50) { if (l < 35) return 'reject'; if (l >= 75) return 'hc'; }
+            else if (m >= 40) { if (l < 30) return 'reject'; if (l >= 80) return 'hc'; }
+            else if (m >= 30) { if (l < 25) return 'reject'; if (l >= 85) return 'hc'; }
+            else if (m >= 20) { if (l < 20) return 'reject'; if (l >= 90) return 'hc'; }
+            else if (m >= 10) { if (l < 15) return 'reject'; }
+            return null;
         }
 
         function showToast(msg, type='info') {
@@ -284,6 +307,32 @@
                 toast.classList.remove('show');
                 setTimeout(() => toast.remove(), 300); 
             }, 3000);
+        }
+
+        // ==========================================
+        // RESET DO BANCO DE DADOS
+        // ==========================================
+        async function resetAllData() {
+            if(!confirm("⚠️ ATENÇÃO: Isso vai ZERAR o ELO, Vitórias e Histórico de TODAS as imagens ativas e HC. O Torneio vai recomeçar do zero (as já excluídas continuam na lixeira). Deseja continuar?")) return;
+            
+            document.getElementById('loading-overlay').style.display = 'flex';
+            updateLoadingText("Zerando banco de dados...");
+            
+            const batch = db.batch();
+            let count = 0;
+            
+            for (let folderId in folderData) {
+                folderData[folderId].forEach(img => {
+                    if (!isRejected(img)) {
+                        const ref = db.collection('images').doc(img.id);
+                        batch.update(ref, { elo: 0, wins: 0, matches: 0, status: 'active', history24h: [] });
+                        count++;
+                    }
+                });
+            }
+            
+            if(count > 0) await batch.commit();
+            window.location.reload();
         }
 
         // ==========================================
@@ -360,7 +409,6 @@
                     q: `'${folderId}' in parents and mimeType contains 'image/' and trashed = false`,
                     fields: 'nextPageToken, files(id, name, thumbnailLink)', pageSize: 100, pageToken: pageToken
                 });
-                // Agora pegamos f.name da API do Google para a ordenação
                 images = images.concat(res.result.files.map(f => ({ id: f.id, name: f.name, url: f.thumbnailLink.replace('=s220', '=s800') })));
                 pageToken = res.result.nextPageToken;
             } while (pageToken);
@@ -384,7 +432,7 @@
                 } else {
                     const existing = firebaseMap.get(img.id);
                     existing.url = img.url; 
-                    existing.name = img.name; // Atualiza o nome se necessário
+                    existing.name = img.name; 
                     existing.wins = existing.wins || 0;
                     existing.matches = existing.matches || 0;
                     existing.status = existing.status || 'active';
@@ -398,20 +446,13 @@
 
         function applyDynamicRules(folderId) {
             let pool = folderData[folderId];
-            let activePool = pool.filter(i => i.status === 'active');
-            let N = activePool.length;
-            if (N < 2) return;
-
-            let thresholdHC = Math.ceil((N - 1) * 0.33); 
-            let thresholdEx = Math.ceil((N - 1) * 0.10); 
-
             pool.forEach(img => {
                 if (img.status === 'active') {
-                    let loyalty = getLoyalty(img);
-                    if (img.matches >= thresholdHC && loyalty >= 90) {
+                    let result = checkCheckpoints(img);
+                    if (result === 'hc') {
                         img.status = 'hors_concours';
                         db.collection('images').doc(img.id).update({ status: 'hors_concours' });
-                    } else if (img.matches >= thresholdEx && loyalty < 15) {
+                    } else if (result === 'reject') {
                         applyRejection(img, true); 
                     }
                 }
@@ -419,7 +460,7 @@
         }
 
         // ==========================================
-        // MODO FOCO E ARENA
+        // MODO FOCO E ARENA COM PRIORIZAÇÃO 0%
         // ==========================================
         function startFocusMode(folderId, imgId) {
             targetedImgInfo = { folderId, id: imgId };
@@ -440,6 +481,8 @@
             document.getElementById('fighter2').className = 'combatant';
             document.getElementById('fraction1').style.display = 'none';
             document.getElementById('fraction2').style.display = 'none';
+
+            duelStartTime = Date.now(); // Inicia contagem do ETA
 
             let p1, p2;
             let foundMatch = false;
@@ -464,7 +507,7 @@
                         foundMatch = true;
                         currentMatchup = { folderId: folderId, img1: p1, img2: p2 };
                     } else {
-                        alert("Esta imagem já disputou contra todos os oponentes válidos! O Modo Foco será encerrado.");
+                        alert("Esta imagem já disputou contra todos os oponentes válidos nas últimas 24h! O Modo Foco será encerrado.");
                         cancelFocusMode();
                         return; 
                     }
@@ -481,15 +524,20 @@
                 });
 
                 if (validFolders.length === 0) {
-                    alert("Todas as bolhas tiveram suas curadorias concluídas ou esgotadas!");
+                    alert("A arena está vazia! Todas as imagens viraram Hors Concours ou foram Rejeitadas.");
                     return;
                 }
 
                 const randomFolder = validFolders[Math.floor(Math.random() * validFolders.length)];
                 const activePool = folderData[randomFolder.id].filter(i => i.status === 'active');
                 
+                // PRIORIZAÇÃO: Isola as imagens com 0% de lealdade (inclui as recém-chegadas com 0 lutas)
+                let priorityPool = activePool.filter(i => getLoyalty(i) === 0);
+                if (priorityPool.length === 0) priorityPool = activePool;
+                
                 while (!foundMatch && attempts < 100) {
-                    p1 = activePool[Math.floor(Math.random() * activePool.length)];
+                    // Pega p1 obrigatoriamente da fila de prioridade
+                    p1 = priorityPool[Math.floor(Math.random() * priorityPool.length)];
                     const recentFights = (p1.history24h || []).filter(h => now - h.t <= oneDay);
                     
                     let validOpponents = activePool.filter(img => {
@@ -498,7 +546,13 @@
                     });
 
                     if (validOpponents.length > 0) {
-                        p2 = validOpponents[Math.floor(Math.random() * validOpponents.length)];
+                        // Tenta forçar que o oponente também seja um cara de 0% (50% de chance para misturar bem)
+                        let priorityOpponents = validOpponents.filter(img => getLoyalty(img) === 0);
+                        if (priorityOpponents.length > 0 && Math.random() > 0.5) {
+                            p2 = priorityOpponents[Math.floor(Math.random() * priorityOpponents.length)];
+                        } else {
+                            p2 = validOpponents[Math.floor(Math.random() * validOpponents.length)];
+                        }
                         foundMatch = true;
                     }
                     attempts++;
@@ -512,7 +566,6 @@
                 currentMatchup = { folderId: randomFolder.id, img1: p1, img2: p2 };
             }
 
-            // REQ 4: Atualiza o nome da pasta no Header centralizado
             const folderObj = activeFolders.find(f => f.id === currentMatchup.folderId);
             if (folderObj) {
                 document.getElementById('header-folder-name').innerText = formatFolderName(folderObj.name);
@@ -522,22 +575,32 @@
         }
 
         function updateArenaUI() {
-            const { img1, img2, folderId } = currentMatchup;
-            const activePool = folderData[folderId].filter(i => i.status === 'active');
-            const T = activePool.length > 1 ? activePool.length - 1 : 0;
+            const { img1, img2 } = currentMatchup;
+            
+            const t1 = getNextCheckpoint(img1.matches);
+            const t2 = getNextCheckpoint(img2.matches);
             
             document.getElementById('img1').src = img1.url;
             document.getElementById('loyalty1').innerText = `L: ${getLoyalty(img1)}%`;
-            document.getElementById('fraction1').innerText = `W: ${img1.wins}; M: ${img1.matches}; T: ${T}`;
+            document.getElementById('fraction1').innerText = `W: ${img1.wins}; M: ${img1.matches}; T: ${t1}`;
 
             document.getElementById('img2').src = img2.url;
             document.getElementById('loyalty2').innerText = `L: ${getLoyalty(img2)}%`;
-            document.getElementById('fraction2').innerText = `W: ${img2.wins}; M: ${img2.matches}; T: ${T}`;
+            document.getElementById('fraction2').innerText = `W: ${img2.wins}; M: ${img2.matches}; T: ${t2}`;
         }
 
         // ==========================================
         // EXCLUSÃO E VOTAÇÃO
         // ==========================================
+        function registerTimeTaken() {
+            let timeTaken = Date.now() - duelStartTime;
+            // Ignora cliques super-rápidos ou pausas para o café (mín. 0.5s e máx. 2min)
+            if (timeTaken > 500 && timeTaken < 120000) {
+                duelTimes.push(timeTaken);
+                if (duelTimes.length > 50) duelTimes.shift(); 
+            }
+        }
+
         async function applyRejection(img, silent = false) {
             img.status = 'rejected';
             db.collection('images').doc(img.id).update({ status: 'rejected' });
@@ -556,6 +619,8 @@
             if (isProcessingVote) return;
             isProcessingVote = true;
 
+            registerTimeTaken(); // Contabiliza tempo do Block para a média do ETA
+
             const targetImg = imgNumber === 1 ? currentMatchup.img1 : currentMatchup.img2;
             document.getElementById(`fighter${imgNumber}`).classList.add('blocked');
             document.getElementById('undo_button').style.display = 'none';
@@ -567,6 +632,8 @@
         async function vote(winnerNumber) {
             if (isProcessingVote) return;
             isProcessingVote = true;
+
+            registerTimeTaken(); // Registra duração do duelo
 
             const { folderId, img1, img2 } = currentMatchup;
             const winner = winnerNumber === 1 ? img1 : img2;
@@ -587,11 +654,6 @@
             document.getElementById('fraction1').style.display = 'block';
             document.getElementById('fraction2').style.display = 'block';
 
-            const activePool = folderData[folderId].filter(i => i.status === 'active');
-            const N = activePool.length;
-            const thresholdHC = Math.ceil((N - 1) * 0.33);
-            const thresholdEx = Math.ceil((N - 1) * 0.10);
-
             const now = Date.now();
             const oneDay = 24 * 60 * 60 * 1000;
             const K = 32;
@@ -605,10 +667,13 @@
             winner.history24h.push({ t: now, w: true, op: loser.id });
             winner.elo = winner.elo + K * (1 - (1 / (1 + Math.pow(10, (loser.elo - winner.elo) / 400))));
 
-            if (winner.matches >= thresholdHC && getLoyalty(winner) >= 90) {
+            let wResult = checkCheckpoints(winner);
+            if (wResult === 'hc') {
                 winner.status = 'hors_concours';
                 lastVoteState.winnerWasHC = true;
                 showToast("🌟 Imagem coroada Hors Concours!", "gold");
+            } else if (wResult === 'reject') {
+                applyRejection(winner, true);
             }
             db.collection('images').doc(winner.id).update({ elo: winner.elo, wins: winner.wins, matches: winner.matches, history24h: winner.history24h, status: winner.status, name: winner.name });
 
@@ -620,9 +685,13 @@
             loser.history24h.push({ t: now, w: false, op: winner.id });
             loser.elo = loser.elo + K * (0 - (1 / (1 + Math.pow(10, (winner.elo - loser.elo) / 400))));
 
-            if (loser.matches >= thresholdEx && getLoyalty(loser) < 15) {
+            let lResult = checkCheckpoints(loser);
+            if (lResult === 'reject') {
                 lastVoteState.loserWasRejected = true;
                 applyRejection(loser, false); 
+            } else if (lResult === 'hc') {
+                loser.status = 'hors_concours';
+                db.collection('images').doc(loser.id).update({ status: 'hors_concours' });
             } else {
                 db.collection('images').doc(loser.id).update({ elo: loser.elo, matches: loser.matches, history24h: loser.history24h, name: loser.name });
             }
@@ -663,19 +732,71 @@
         }
 
         // ==========================================
-        // MENUS E RANKS
+        // MENUS E ETA DINÂMICO
         // ==========================================
         function getFolderProgress(folderId) {
-            let activePool = folderData[folderId].filter(i => i.status === 'active');
-            let N = activePool.length;
-            if (N < 2) return 100;
+            let basePool = folderData[folderId].filter(i => !isRejected(i));
+            let N = basePool.length;
+            if (N === 0) return 0;
             
-            let totalPossible = (N * (N - 1)) / 2;
-            let currentMatches = activePool.reduce((sum, img) => sum + img.matches, 0) / 2;
-            return Math.min(100, Math.round((currentMatches / totalPossible) * 100));
+            let activePool = basePool.filter(i => i.status === 'active');
+            return Math.round(((N - activePool.length) / N) * 100);
         }
 
-        function toggleMenu() { document.getElementById('side-menu').classList.toggle('open'); }
+        function updateETADisplay() {
+            const etaElement = document.getElementById('eta-display');
+            if (!etaElement) return;
+
+            if (duelTimes.length < 5) {
+                etaElement.innerText = "⏳ ETA: Calculando...";
+                return;
+            }
+
+            // Calcula a média de tempo por duelo
+            let avgTimeMs = duelTimes.reduce((a, b) => a + b, 0) / duelTimes.length;
+            let remainingDuels = 0;
+
+            activeFolders.forEach(f => {
+                let pool = folderData[f.id].filter(i => !isRejected(i));
+                let N = pool.length;
+                if (N < 2) return;
+                
+                let activePool = pool.filter(i => i.status === 'active');
+                
+                // O limite para se tornar HC é dinâmico, mas em geral é Math.ceil((N-1)*0.33)
+                // Usamos isso como um teto otimista para o cálculo de quanto tempo falta
+                let thresholdHC = Math.ceil((N - 1) * 0.33); 
+                
+                activePool.forEach(img => {
+                    if (img.matches < thresholdHC) {
+                        remainingDuels += (thresholdHC - img.matches);
+                    }
+                });
+            });
+
+            // Cada duelo envolve 2 imagens
+            remainingDuels = remainingDuels / 2;
+
+            if (remainingDuels <= 0) {
+                etaElement.innerText = "⏳ ETA: Concluído!";
+                return;
+            }
+
+            let totalMinutes = Math.ceil((remainingDuels * avgTimeMs) / 60000);
+            let hours = Math.floor(totalMinutes / 60);
+            let mins = totalMinutes % 60;
+            
+            if (hours > 0) {
+                etaElement.innerText = `⏳ ETA: ~${hours}h ${mins}m`;
+            } else {
+                etaElement.innerText = `⏳ ETA: ~${mins} min`;
+            }
+        }
+
+        function toggleMenu() { 
+            document.getElementById('side-menu').classList.toggle('open'); 
+            updateETADisplay(); // Atualiza a previsão sempre que abrir o menu
+        }
 
         function renderMenu() {
             const container = document.getElementById('folder-list-container');
@@ -685,11 +806,12 @@
                 if (activeCount > 0) {
                     const div = document.createElement('div');
                     div.className = 'folder-item';
-                    div.innerHTML = `<span>${f.name}</span> <span class="count">${activeCount} ativas | ${getFolderProgress(f.id)}% comp.</span>`;
+                    div.innerHTML = `<span>${f.name}</span> <span class="count">${activeCount} ativas | ${getFolderProgress(f.id)}%</span>`;
                     div.onclick = () => openFolderRank(f.id, f.name);
                     container.appendChild(div);
                 }
             });
+            updateETADisplay();
         }
 
         function renderGrid(imagesArray, title, subtitle = "", isFolderRank = false, folderId = null) {
@@ -706,7 +828,6 @@
                 const div = document.createElement('div');
                 div.className = 'rank-item';
                 
-                // REQ 3: Adiciona classe exhausted se a imagem enfrentou todo o pool nas últimas 24h
                 let imgClass = '';
                 if (img.exhausted24h) imgClass = 'exhausted';
                 
@@ -722,7 +843,6 @@
             document.getElementById('ranking-screen').style.display = 'flex';
         }
 
-        // Todos os Ranks usam a nova ordenação ELO > Nome (A-Z)
         function openLoyaltyRank() {
             let pool = [];
             for (let k in folderData) pool = pool.concat(folderData[k]);
@@ -754,15 +874,13 @@
             const now = Date.now();
             const oneDay = 24 * 60 * 60 * 1000;
             
-            // REQ 3: Avalia exaustão das últimas 24h para escurecer as thumbs
             pool.forEach(img => {
                 const recentOps = (img.history24h || []).filter(h => now - h.t <= oneDay).map(h => h.op);
-                // Se todo oponente da pasta for ele mesmo ou estiver na lista de enfrentados das 24h, está exausta
                 img.exhausted24h = activePool.every(other => other.id === img.id || recentOps.includes(other.id));
             });
 
             pool.sort(sortEloName);
-            renderGrid(pool, `Bolha: ${formatFolderName(folderName)}`, `Progresso de Triagem: ${getFolderProgress(folderId)}% (CLIQUE PARA FOCAR)`, true, folderId);
+            renderGrid(pool, `Bolha: ${formatFolderName(folderName)}`, `Progresso da Triagem: ${getFolderProgress(folderId)}% (CLIQUE NA FOTO)`, true, folderId);
         }
 
         function closeRank() { document.getElementById('ranking-screen').style.display = 'none'; }
